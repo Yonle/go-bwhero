@@ -8,6 +8,7 @@ import (
 )
 
 func process_image(w http.ResponseWriter, resp *http.Response, quality int, grayscale int) error {
+	defer resp.Body.Close()
 	img, err := vips.NewImageFromReader(resp.Body)
 	if err != nil {
 		return err
