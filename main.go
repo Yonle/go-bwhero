@@ -88,7 +88,7 @@ func handleRequest(w http.ResponseWriter, r *http.Request) {
 	log.Printf("Processing: %s", origin_url)
 
 	opt := bimg.Options{
-		Compression: 100-quality,
+		Quality: quality,
 		Type:    bimg.WEBP,
 	}
 
