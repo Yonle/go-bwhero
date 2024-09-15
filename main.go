@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"log"
@@ -19,7 +20,7 @@ var hc = http.Client{
 var blank = []byte{}
 
 func redirect(w http.ResponseWriter, url string) {
-	w.Header().Add("Location", url)
+	w.Header().Set("Location", url)
 	w.WriteHeader(302)
 	w.Write(blank)
 }
@@ -34,27 +35,39 @@ func handleRequest(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	quality, err1 := strconv.Atoi(query.Get("l"))
-	if err1 != nil || quality > 100 || quality < 1 {
+	quality, err := strconv.Atoi(query.Get("l"))
+	if err != nil || quality > 100 || quality < 1 {
 		quality = 40
 	}
 
-	grayscale, err2 := strconv.Atoi(query.Get("bw"))
-	if err2 != nil {
+	grayscale, err := strconv.Atoi(query.Get("bw"))
+	if err != nil {
 		grayscale = 1
 	}
 
-
-	// cookie, dnt, referer, range, user-agent, x-forwarded-for
-	clientHeader := r.Header.Clone()
-	clientHeader.Add("Range", r.Header.Get("Range"))
-	clientHeader.Add("User-Agent", "go-bwhero")
-	clientHeader.Add("Via", "2.0 go-bwhero")
-
-	req, err3 := http.NewRequestWithContext(ctx, r.Method, origin_url, nil)
-	if err3 != nil {
-		http.Error(w, "Something was wrong.", http.StatusBadGateway)
+	resp, err := proxy(ctx, r, origin_url)
+	if err != nil {
+		redirect(w, origin_url)
 		return
+	}
+
+	log.Printf("Processing: %s", origin_url)
+
+	if err := process_image(w, resp.Body, quality, grayscale); err != nil {
+		redirect(w, origin_url)
+		return
+	}
+}
+
+func proxy(ctx context.Context, r *http.Request, origin_url string) (resp *http.Response, err error) {
+	clientHeader := r.Header.Clone()
+	clientHeader.Set("Range", r.Header.Get("Range"))
+	clientHeader.Set("User-Agent", "go-bwhero")
+	clientHeader.Set("Via", "2.0 go-bwhero")
+
+	req, err := http.NewRequestWithContext(ctx, r.Method, origin_url, nil)
+	if err != nil {
+		return nil, err
 	}
 
 	req.Header = clientHeader
@@ -62,27 +75,15 @@ func handleRequest(w http.ResponseWriter, r *http.Request) {
 		req.AddCookie(cookie)
 	}
 
-	resp, err4 := hc.Do(req)
-	if err4 != nil {
-		redirect(w, origin_url)
-		return
-	}
+	return hc.Do(req)
+}
 
-	if resp.ContentLength > 200000000 {
-		redirect(w, origin_url)
-		resp.Body.Close()
-		return
+func process_image(w http.ResponseWriter, rc io.ReadCloser, quality int, grayscale int) error {
+	defer rc.Close()
+	imgbytes, err := io.ReadAll(rc)
+	if err != nil {
+		return err
 	}
-
-	imgbytes, err5 := io.ReadAll(resp.Body)
-	if err5 != nil {
-		redirect(w, origin_url)
-		resp.Body.Close()
-		return
-	}
-	resp.Body.Close()
-
-	log.Printf("Processing: %s", origin_url)
 
 	opt := bimg.Options{
 		Quality: quality,
@@ -93,25 +94,24 @@ func handleRequest(w http.ResponseWriter, r *http.Request) {
 		opt.Interpretation = bimg.InterpretationBW
 	}
 
-	processed, err6 := bimg.NewImage(imgbytes).Process(opt)
-	if err6 != nil {
-		redirect(w, origin_url)
-		return
+	processed, err := bimg.NewImage(imgbytes).Process(opt)
+	if err != nil {
+		return err
 	}
 
 	imgsize := len(imgbytes)
 	procsize := len(processed)
 
 	h := w.Header()
-	h.Add("content-type", "image/webp")
-	h.Add("content-length", strconv.Itoa(procsize))
-	h.Add("x-original-size", strconv.Itoa(imgsize))
-	h.Add("x-bytes-saved", strconv.Itoa(imgsize-procsize))
+	h.Set("content-type", "image/webp")
+	h.Set("content-length", strconv.Itoa(procsize))
+	h.Set("x-original-size", strconv.Itoa(imgsize))
+	h.Set("x-bytes-saved", strconv.Itoa(imgsize-procsize))
 
 	w.WriteHeader(200)
 	w.Write(processed)
 
-	return
+	return nil
 }
 
 func main() {
