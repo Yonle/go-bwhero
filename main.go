@@ -127,5 +127,7 @@ func main() {
 	}
 
 	log.Printf("Listening on %s", listen)
-	http.ListenAndServe(listen, nil)
+	if err := http.ListenAndServe(listen, nil); err != nil {
+		panic(err)
+	}
 }
