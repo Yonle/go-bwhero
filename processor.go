@@ -1,45 +1,40 @@
 package main
 
 import (
-	"io"
 	"net/http"
 	"strconv"
 
-	"github.com/h2non/bimg"
+	"github.com/davidbyttow/govips/v2/vips"
 )
 
-func process_image(w http.ResponseWriter, rc io.ReadCloser, quality int, grayscale int) error {
-	defer rc.Close()
-	imgbytes, err := io.ReadAll(rc)
+func process_image(w http.ResponseWriter, resp *http.Response, quality int, grayscale int) error {
+	img, err := vips.NewImageFromReader(resp.Body)
 	if err != nil {
 		return err
 	}
 
-	opt := bimg.Options{
-		Quality: quality,
-		Type:    bimg.WEBP,
-	}
+	params := vips.NewWebpExportParams()
+	params.Quality = quality
 
 	if grayscale == 1 {
-		opt.Interpretation = bimg.InterpretationBW
+		if err := img.ToColorSpace(vips.InterpretationBW); err != nil {
+			return err
+		}
 	}
 
-	processed, err := bimg.NewImage(imgbytes).Process(opt)
-	if err != nil {
-		return err
-	}
+	webp, _, err := img.ExportWebp(params)
 
-	imgsize := len(imgbytes)
-	procsize := len(processed)
+	imgsize := resp.ContentLength
+	procsize := int64(len(webp))
 
 	h := w.Header()
 	h.Set("content-type", "image/webp")
-	h.Set("content-length", strconv.Itoa(procsize))
-	h.Set("x-original-size", strconv.Itoa(imgsize))
-	h.Set("x-bytes-saved", strconv.Itoa(imgsize-procsize))
+	h.Set("content-length", strconv.FormatInt(procsize, 10))
+	h.Set("x-original-size", strconv.FormatInt(imgsize, 10))
+	h.Set("x-bytes-saved", strconv.FormatInt(imgsize-procsize, 10))
 
 	w.WriteHeader(200)
-	w.Write(processed)
+	w.Write(webp)
 
 	return nil
 }

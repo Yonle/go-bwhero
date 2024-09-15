@@ -35,7 +35,7 @@ func request_handler(w http.ResponseWriter, r *http.Request) {
 
 	log.Printf("Processing: %s", origin_url)
 
-	if err := process_image(w, resp.Body, quality, grayscale); err != nil {
+	if err := process_image(w, resp, quality, grayscale); err != nil {
 		redirect(w, origin_url)
 		return
 	}

@@ -15,3 +15,5 @@ go install -v codeberg.org/Yonle/go-bwhero@latest
 ```
 LISTEN=localhost:8080 go-bwhero
 ```
+
+If you want to increase libvips ConcurrencyLevel, You could change it by setting `CONCURRENCY_LEVEL` environment variable.
