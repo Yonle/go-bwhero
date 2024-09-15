@@ -35,7 +35,7 @@ func handleRequest(w http.ResponseWriter, r *http.Request) {
 	}
 
 	quality, err1 := strconv.Atoi(query.Get("l"))
-	if err1 != nil {
+	if err1 != nil || quality > 100 || quality < 1 {
 		quality = 40
 	}
 
@@ -44,9 +44,6 @@ func handleRequest(w http.ResponseWriter, r *http.Request) {
 		grayscale = 1
 	}
 
-	if quality > 100 || quality < 1 {
-		fmt.Fprintf(w, "Invalid quality")
-	}
 
 	// cookie, dnt, referer, range, user-agent, x-forwarded-for
 	clientHeader := r.Header.Clone()
@@ -56,7 +53,7 @@ func handleRequest(w http.ResponseWriter, r *http.Request) {
 
 	req, err3 := http.NewRequestWithContext(ctx, r.Method, origin_url, nil)
 	if err3 != nil {
-		fmt.Fprintf(w, "Something was wrong.")
+		http.Error(w, "Something was wrong.", http.StatusBadGateway)
 		return
 	}
 
