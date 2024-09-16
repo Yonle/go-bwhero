@@ -25,6 +25,10 @@ func process_image(w http.ResponseWriter, resp *http.Response, quality int, gray
 
 	webp, _, err := img.ExportWebp(params)
 
+	if err != nil {
+		return err
+	}
+
 	imgsize := resp.ContentLength
 	procsize := int64(len(webp))
 
