@@ -33,10 +33,14 @@ func process_image(w http.ResponseWriter, resp *http.Response, quality int, gray
 	procsize := int64(len(webp))
 
 	h := w.Header()
-	h.Set("content-type", "image/webp")
-	h.Set("content-length", strconv.FormatInt(procsize, 10))
-	h.Set("x-original-size", strconv.FormatInt(imgsize, 10))
-	h.Set("x-bytes-saved", strconv.FormatInt(imgsize-procsize, 10))
+	h.Set("Access-Control-Allow-Origin", "*")
+	h.Set("Cross-Origin-Resource-Policy", "cross-origin")
+	h.Set("Cross-Origin-Embedder-Policy", "unsafe-none")
+	h.Set("Content-Encoding", "identity")
+	h.Set("Content-Type", "image/webp")
+	h.Set("Content-Length", strconv.FormatInt(procsize, 10))
+	h.Set("X-Original-Size", strconv.FormatInt(imgsize, 10))
+	h.Set("X-Bytes-Saved", strconv.FormatInt(imgsize-procsize, 10))
 
 	w.WriteHeader(200)
 	w.Write(webp)
