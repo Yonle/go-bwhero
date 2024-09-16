@@ -9,7 +9,11 @@ import (
 	"github.com/davidbyttow/govips/v2/vips"
 )
 
-var vips_config = &vips.Config{}
+var vips_config = &vips.Config{
+	MaxCacheFiles: 0,
+	MaxCacheMem:   0,
+	MaxCacheSize:  0,
+}
 
 func main() {
 	log.Println("bwhero, rewritten backend.")
