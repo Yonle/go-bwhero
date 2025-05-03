@@ -17,11 +17,6 @@ func request_handler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	quality, err := strconv.Atoi(query.Get("l"))
-	if err != nil || quality > 100 || quality < 1 {
-		quality = 40
-	}
-
 	grayscale, err := strconv.Atoi(query.Get("bw"))
 	if err != nil {
 		grayscale = 1
@@ -35,7 +30,7 @@ func request_handler(w http.ResponseWriter, r *http.Request) {
 
 	log.Printf("Processing: %s", origin_url)
 
-	if err := process_image(w, resp, quality, grayscale); err != nil {
+	if err := process_image(w, resp, grayscale); err != nil {
 		log.Printf("Failed to process %s: %s", origin_url, err)
 		http.Redirect(w, r, origin_url, http.StatusFound)
 		return

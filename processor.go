@@ -1,26 +1,57 @@
 package main
 
 import (
+	"io"
 	"net/http"
+	"os"
 	"strconv"
 
 	"github.com/davidbyttow/govips/v2/vips"
 )
 
-func process_image(w http.ResponseWriter, resp *http.Response, quality int, grayscale int) error {
-	defer resp.Body.Close()
-	img, err := vips.NewImageFromReader(resp.Body)
-	if err != nil {
+var importParams *vips.ImportParams
+
+func init() {
+	importParams = vips.NewImportParams()
+	animationDisabled := len(os.Getenv("NO_ANIMATE")) > 0
+
+	if !animationDisabled {
+		importParams.NumPages.Set(-1)
+	}
+}
+
+func readAll(r io.ReadCloser, b *[]byte) (err error) {
+	defer r.Close()
+	*b, err = io.ReadAll(r)
+
+	return
+}
+
+func process_image(w http.ResponseWriter, resp *http.Response, grayscale int) error {
+	var b []byte
+
+	if err := readAll(resp.Body, &b); err != nil {
 		return err
 	}
 
-	params := vips.NewWebpExportParams()
-	params.Quality = quality
+	img, err := vips.LoadImageFromBuffer(b, importParams)
+
+	if err != nil {
+		return err
+	}
 
 	if grayscale == 1 {
 		if err := img.ToColorSpace(vips.InterpretationBW); err != nil {
 			return err
 		}
+	}
+
+	params := vips.NewWebpExportParams()
+	params.MinSize = true
+
+	if img.Pages() > 1 { // animated
+		params.MinKeyFrames = 9
+		params.MaxKeyFrames = 17
 	}
 
 	webp, _, err := img.ExportWebp(params)
