@@ -17,3 +17,10 @@ LISTEN=localhost:8080 go-bwhero
 ```
 
 If you want to increase libvips ConcurrencyLevel, You could change it by setting `CONCURRENCY_LEVEL` environment variable.
+
+By default, `go-bwhero` did not have a limit of original bytes during fetching. You could configure it to redirect user to original image instead if an image is too big to be processed by setting `IMAGESIZELIMIT`
+
+```
+# This will start a server with a limit of 50 MB
+MEMSIZELIMIT=50000000 go-bwhero
+```

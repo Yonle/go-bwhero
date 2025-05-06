@@ -4,8 +4,22 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"strconv"
+	"strings"
 )
+
+var imagesizelimit int64
+
+func init() {
+	i, err := strconv.ParseInt(os.Getenv("IMAGESIZELIMIT"), 10, 64)
+
+	if err != nil {
+		return
+	}
+
+	imagesizelimit = i
+}
 
 func request_handler(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
@@ -24,6 +38,19 @@ func request_handler(w http.ResponseWriter, r *http.Request) {
 
 	resp, err := proxy(ctx, r, origin_url)
 	if err != nil {
+		http.Redirect(w, r, origin_url, http.StatusFound)
+		return
+	}
+
+	var isImage bool = strings.HasPrefix(resp.Header.Get("content-type"), "image/")
+	var isBig bool
+
+	if imagesizelimit > 0 {
+		isBig = resp.ContentLength > imagesizelimit
+	}
+
+	if resp.StatusCode >= 400 || !isImage || isBig {
+		resp.Body.Close()
 		http.Redirect(w, r, origin_url, http.StatusFound)
 		return
 	}
