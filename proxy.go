@@ -12,7 +12,6 @@ var hc = http.Client{
 
 func proxy(ctx context.Context, r *http.Request, origin_url string) (resp *http.Response, err error) {
 	clientHeader := r.Header.Clone()
-	clientHeader.Set("Range", r.Header.Get("Range"))
 	clientHeader.Set("User-Agent", "go-bwhero")
 	clientHeader.Set("Via", "2.0 go-bwhero")
 
