@@ -67,6 +67,7 @@ func process_image(w http.ResponseWriter, resp *http.Response, grayscale int) er
 	h.Set("Access-Control-Allow-Origin", "*")
 	h.Set("Cross-Origin-Resource-Policy", "cross-origin")
 	h.Set("Cross-Origin-Embedder-Policy", "unsafe-none")
+	h.Set("Cache-Control", "public, max-age=604800, stale-while-revalidate=86400") // cache for a week while asking for revalidation after a day
 	h.Set("Content-Encoding", "identity")
 	h.Set("Content-Type", "image/webp")
 	h.Set("Content-Length", strconv.FormatInt(procsize, 10))
