@@ -31,6 +31,11 @@ func request_handler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if r.Header.Get("User-Agent") == "go-bwhero" || r.Header.Get("Via") == "2.0 go-bwhero" {
+		http.Redirect(w, r, origin_url, http.StatusFound)
+		return
+	}
+
 	grayscale, err := strconv.Atoi(query.Get("bw"))
 	if err != nil {
 		grayscale = 1
@@ -42,7 +47,7 @@ func request_handler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var isImage bool = strings.HasPrefix(resp.Header.Get("content-type"), "image/")
+	var isImage bool = strings.HasPrefix(resp.Header.Get("Content-Type"), "image/")
 	var isBig bool
 
 	if imagesizelimit > 0 {
