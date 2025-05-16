@@ -7,6 +7,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"time"
 )
 
 var imagesizelimit int64
@@ -41,6 +42,8 @@ func request_handler(w http.ResponseWriter, r *http.Request) {
 		grayscale = 1
 	}
 
+	fetch_time := time.Now()
+
 	resp, err := proxy(ctx, r, origin_url)
 	if err != nil {
 		http.Redirect(w, r, origin_url, http.StatusFound)
@@ -60,11 +63,18 @@ func request_handler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	log.Printf("Processing: %s", origin_url)
+	ft := time.Since(fetch_time)
+
+	processing_time := time.Now()
 
 	if err := process_image(w, resp, grayscale); err != nil {
 		log.Printf("Failed to process %s: %s", origin_url, err)
 		http.Redirect(w, r, origin_url, http.StatusFound)
 		return
 	}
+
+	pt := time.Since(processing_time)
+	tl := time.Since(fetch_time)
+
+	log.Printf("Took %.1fs | Fetch: %.1fs | Processing: %.1fs | URL: %s", tl.Seconds(), ft.Seconds(), pt.Seconds(), origin_url)
 }
