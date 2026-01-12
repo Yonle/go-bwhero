@@ -42,6 +42,9 @@ func request_handler(w http.ResponseWriter, r *http.Request) {
 		grayscale = 1
 	}
 
+	sem <- struct{}{}
+	defer func() { <-sem }()
+
 	fetch_time := time.Now()
 
 	resp, err := proxy(ctx, r, origin_url)
