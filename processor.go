@@ -5,11 +5,19 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"sync"
 
 	"github.com/davidbyttow/govips/v2/vips"
 )
 
 var importParams *vips.ImportParams
+
+var bufPool = sync.Pool{
+	New: func() any {
+		b := make([]byte, 0, 256*1024)
+		return &b
+	},
+}
 
 func init() {
 	importParams = vips.NewImportParams()
@@ -20,15 +28,46 @@ func init() {
 	}
 }
 
-func readAll(r io.ReadCloser, b *[]byte) (err error) {
+func readAll(r io.ReadCloser, buf *[]byte) error {
 	defer r.Close()
-	*b, err = io.ReadAll(r)
 
-	return
+	b := (*buf)[:0]
+
+	for {
+		// grow capacity if needed
+		if len(b) == cap(b) {
+			newCap := cap(b) * 2
+			if newCap == 0 {
+				newCap = 32 * 1024
+			}
+			nb := make([]byte, len(b), newCap)
+			copy(nb, b)
+			b = nb
+		}
+
+		n, err := r.Read(b[len(b):cap(b)])
+		b = b[:len(b)+n]
+
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			return err
+		}
+	}
+
+	*buf = b
+	return nil
 }
 
 func process_image(w http.ResponseWriter, resp *http.Response, grayscale int) error {
+	bufPtr := bufPool.Get().(*[]byte)
+	defer bufPool.Put(bufPtr)
+
 	var b []byte
+
+	*bufPtr = (*bufPtr)[:0]
+	b = *bufPtr
 
 	if err := readAll(resp.Body, &b); err != nil {
 		return err
@@ -39,6 +78,8 @@ func process_image(w http.ResponseWriter, resp *http.Response, grayscale int) er
 	if err != nil {
 		return err
 	}
+
+	defer img.Close()
 
 	if grayscale == 1 {
 		if err := img.ToColorSpace(vips.InterpretationBW); err != nil {
