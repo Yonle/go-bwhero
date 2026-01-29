@@ -6,7 +6,7 @@ import (
 	"os"
 	"strconv"
 
-	"github.com/davidbyttow/govips/v2/vips"
+	"github.com/cshum/vipsgen/vips"
 )
 
 var vips_config = &vips.Config{
@@ -15,26 +15,12 @@ var vips_config = &vips.Config{
 	MaxCacheSize:  0,
 }
 
-var sem chan struct{}
-
 func main() {
 	log.Println("bwhero, rewritten backend.")
 
 	listen, ok := os.LookupEnv("LISTEN")
 	if !ok {
 		listen = "localhost:8080"
-	}
-
-	semlvl, ok := os.LookupEnv("SEM")
-	if ok {
-		slvl, err := strconv.Atoi(semlvl)
-		if err != nil {
-			panic(err)
-		}
-
-		sem = make(chan struct{}, slvl)
-	} else {
-		sem = make(chan struct{})
 	}
 
 	concurrency_level, ok := os.LookupEnv("CONCURRENCY_LEVEL")

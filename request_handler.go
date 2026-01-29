@@ -42,8 +42,10 @@ func request_handler(w http.ResponseWriter, r *http.Request) {
 		grayscale = 1
 	}
 
-	sem <- struct{}{}
-	defer func() { <-sem }()
+	quality, err := strconv.Atoi(query.Get("q"))
+	if err != nil || quality < 1 || quality > 100 {
+		quality = 10
+	}
 
 	fetch_time := time.Now()
 
@@ -70,7 +72,7 @@ func request_handler(w http.ResponseWriter, r *http.Request) {
 
 	processing_time := time.Now()
 
-	if err := process_image(w, resp, grayscale); err != nil {
+	if err := process_image(w, resp, quality, grayscale); err != nil {
 		log.Printf("Failed to process %s: %s", origin_url, err)
 		http.Redirect(w, r, origin_url, http.StatusFound)
 		return

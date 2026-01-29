@@ -25,6 +25,10 @@ By default, `go-bwhero` did not have a limit of original bytes during fetching. 
 IMAGESIZELIMIT=50000000 go-bwhero
 ```
 
+---
+
+**NOTICE: THE FOLLOWING OPTIONS IS TEMPORARILY UNAVAILABLE
+
 By default, `go-bwhero` has no semaphore level. You might need to configure it to avoid OOM (out of memory) on intensive environment:
 ```
 lv: 10
