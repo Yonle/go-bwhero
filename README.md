@@ -46,5 +46,5 @@ NO_ANIMATE=1 go-bwhero
 
 Due to Golang's garbage cleaner nature, You might want to adjust `GOMEMLIMIT`, `GOGC`, and `GOMAXPROCS` environment variable, where:
 - `GOMEMLIMIT`: Heap Limit (example: `512MiB`)
-- `GOGC`: Level of GC (example: `50`). The less, the more aggresive
+- `GOGC`: Level of GC (example: `50` or `off`). The less, the more aggresive
 - `GOMAXPROCS`: Maximum parallel allocations. (example: `2`)
