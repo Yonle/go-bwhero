@@ -27,7 +27,7 @@ IMAGESIZELIMIT=50000000 go-bwhero
 
 ---
 
-**NOTICE: THE FOLLOWING OPTIONS IS TEMPORARILY UNAVAILABLE
+**NOTICE: THE FOLLOWING OPTIONS IS TEMPORARILY UNAVAILABLE**
 
 By default, `go-bwhero` has no semaphore level. You might need to configure it to avoid OOM (out of memory) on intensive environment:
 ```
@@ -39,3 +39,12 @@ By default, `go-bwhero` render animated image. This could cause high memory usag
 ```
 NO_ANIMATE=1 go-bwhero
 ```
+
+---
+
+## Setting up Limit
+
+Due to Golang's garbage cleaner nature, You might want to adjust `GOMEMLIMIT`, `GOGC`, and `GOMAXPROCS` environment variable, where:
+- `GOMEMLIMIT`: Heap Limit (example: `512MiB`)
+- `GOGC`: Level of GC (example: `50`). The less, the more aggresive
+- `GOMAXPROCS`: Maximum parallel allocations. (example: `2`)
