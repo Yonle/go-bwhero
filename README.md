@@ -48,3 +48,9 @@ Due to Golang's garbage cleaner nature, You might want to adjust `GOMEMLIMIT`, `
 - `GOMEMLIMIT`: Heap Limit (example: `512MiB`)
 - `GOGC`: Level of GC (example: `50` or `off`). The less, the more aggresive
 - `GOMAXPROCS`: Maximum parallel allocations. (example: `2`)
+
+Example:
+
+```
+GOMEMLIMIT=512MiB GOMAXPROCS=2 GOGC=30 ./bwhero
+```
