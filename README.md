@@ -4,7 +4,7 @@ Rewritten backend of [bandwidth-hero-proxy](https://github.com/Yonle/bandwidth-h
 ## Installation
 **Requirements:**
 - Have [Go](https://go.dev) installed
-- Have [libvips](https://github.com/libvips/libvips) installed
+- Have [libvips](https://github.com/libvips/libvips) 8.18.0 installed
 
 **Install:**
 ```
