@@ -1,4 +1,4 @@
-module codeberg.org/Yonle/go-bwhero
+module github.com/Yonle/go-bwhero
 
 go 1.24.2
 

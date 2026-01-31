@@ -1,0 +1,11 @@
+version: "3.7"
+
+services:
+  bwhero:
+    image: yonle/bwhero:latest
+    build: .
+    ports:
+      - "8080:8080"
+    environment:
+      LISTEN: 0.0.0.0:8080
+      # IMAGESIZELIMIT=50000000

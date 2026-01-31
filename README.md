@@ -8,7 +8,17 @@ Rewritten backend of [bandwidth-hero-proxy](https://github.com/Yonle/bandwidth-h
 
 **Install:**
 ```
-go install -v codeberg.org/Yonle/go-bwhero@latest
+go install -v github.com/Yonle/go-bwhero@latest
+```
+
+or via an ready-to-use docker image:
+```
+docker run -d -p 8080:8080 --name bwhero yonle/bwhero
+```
+
+or via docker compose:
+```
+docker compose up --build
 ```
 
 ## Listening
