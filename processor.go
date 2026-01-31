@@ -41,7 +41,7 @@ func process_image(w http.ResponseWriter, resp *http.Response, quality, grayscal
 
 	webpOpt := vips.WebpsaveTargetOptions{
 		Effort:         4,
-		NearLossless:   true,
+		NearLossless:   false,
 		Lossless:       false,
 		Mixed:          true,
 		SmartSubsample: true,
