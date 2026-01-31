@@ -38,7 +38,7 @@ func request_handler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// user opens in new tab
-	if r.Referer() == "" && strings.HasPrefix(r.Header.Get("Accept"), "text/html") {
+	if strings.HasPrefix(r.Header.Get("Accept"), "text/html") {
 		http.Redirect(w, r, origin_url, http.StatusFound)
 		return
 	}
