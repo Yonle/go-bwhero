@@ -31,13 +31,13 @@ func process_image(w http.ResponseWriter, resp *http.Response, quality, grayscal
 		return err
 	}
 
+	defer img.Close()
+
 	if grayscale == 1 {
 		if err := img.Colourspace(vips.InterpretationBW, nil); err != nil {
 			return err
 		}
 	}
-
-	defer img.Close()
 
 	webpOpt := vips.WebpsaveTargetOptions{
 		Effort:         4,
