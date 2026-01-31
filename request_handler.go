@@ -48,9 +48,9 @@ func request_handler(w http.ResponseWriter, r *http.Request) {
 		grayscale = 1
 	}
 
-	quality, err := strconv.Atoi(query.Get("q"))
+	quality, err := strconv.Atoi(query.Get("l"))
 	if err != nil || quality < 1 || quality > 100 {
-		quality = 10
+		quality = 80
 	}
 
 	fetch_time := time.Now()
