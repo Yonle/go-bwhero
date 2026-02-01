@@ -34,14 +34,6 @@ By default, `go-bwhero` did not have a limit of original bytes during fetching. 
 # This will start a server with a limit of 50 MB
 IMAGESIZELIMIT=50000000 go-bwhero
 ```
-
-## Authentication
-
-To make this proxy to be only accessible to you, You can set `AUTH_USERNAME` and `AUTH_PASSWORD` environment variable.
-```
-AUTH_USERNAME=lain AUTH_PASSWORD=letsalllovelain go-bwhero
-```
-
 ---
 
 ## Setting up Limit

@@ -23,10 +23,6 @@ func init() {
 }
 
 func request_handler(w http.ResponseWriter, r *http.Request) {
-	if !basicAuth(w, r) {
-		return
-	}
-
 	ctx := r.Context()
 	query := r.URL.Query()
 

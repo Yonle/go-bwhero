@@ -1,7 +1,7 @@
 FROM docker.io/alpine:edge
 
 LABEL org.opencontainers.image.source="https://github.com/Yonle/go-bwhero" \
-      org.opencontainers.image.description="basically a container for bkerler/edl program, because you hate waiting for its dependencies to get compiled." \
+      org.opencontainers.image.description="an image to run go-bwhero backend, an image compressor backend to be used with bandwidth hero addon." \
       org.opencontainers.image.licenses="MIT"
 
 WORKDIR /a
