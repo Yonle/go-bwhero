@@ -2,6 +2,7 @@ package main
 
 import (
 	"net/http"
+	"strconv"
 
 	"github.com/cshum/vipsgen/vips"
 )
@@ -61,10 +62,10 @@ func process_image(w http.ResponseWriter, resp *http.Response, quality, grayscal
 	h.Set("Cache-Control", "public, max-age=604800, stale-while-revalidate=86400") // cache for a week while asking for revalidation after a day
 	h.Set("Content-Encoding", "identity")
 	h.Set("Content-Type", "image/webp")
+	h.Set("X-Original-Size", strconv.FormatInt(resp.ContentLength, 10))
 
 	// since we're going io to io, we can't count.
 	//h.Set("Content-Length", strconv.FormatInt(procsize, 10))
-	//h.Set("X-Original-Size", strconv.FormatInt(imgsize, 10))
 	//h.Set("X-Bytes-Saved", strconv.FormatInt(imgsize-procsize, 10))
 
 	w.WriteHeader(200)
