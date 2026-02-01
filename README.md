@@ -35,19 +35,11 @@ By default, `go-bwhero` did not have a limit of original bytes during fetching. 
 IMAGESIZELIMIT=50000000 go-bwhero
 ```
 
----
+## Authentication
 
-**NOTICE: THE FOLLOWING OPTIONS IS TEMPORARILY UNAVAILABLE**
-
-By default, `go-bwhero` has no semaphore level. You might need to configure it to avoid OOM (out of memory) on intensive environment:
+To make this proxy to be only accessible to you, You can set `AUTH_USERNAME` and `AUTH_PASSWORD` environment variable.
 ```
-lv: 10
-SEM=10 go-bwhero
-```
-
-By default, `go-bwhero` render animated image. This could cause high memory usage on intensive environment. To disable it, set `NO_ANIMATE` to `1`:
-```
-NO_ANIMATE=1 go-bwhero
+AUTH_USERNAME=lain AUTH_PASSWORD=letsalllovelain go-bwhero
 ```
 
 ---

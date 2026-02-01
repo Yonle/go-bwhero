@@ -8,4 +8,6 @@ services:
       - "8080:8080"
     environment:
       LISTEN: 0.0.0.0:8080
-      # IMAGESIZELIMIT=50000000
+      #IMAGESIZELIMIT: 50000000
+      #AUTH_USERNAME: lain
+      #AUTH_PASSWORD: letsalllovelain
