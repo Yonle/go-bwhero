@@ -19,9 +19,8 @@ func proxy(ctx context.Context, r *http.Request, origin_url string) (resp *http.
 		return nil, err
 	}
 
-	copyClientHeaders(req.Header, r.Header)
 	req.Header.Set("Accept", "image/*")
-	req.Header.Set("User-Agent", "go-bwhero")
+	req.Header.Set("User-Agent", "go-bwhero [https://github.com/Yonle/bwhero]")
 	req.Header.Set("Via", "2.0 go-bwhero")
 
 	return hc.Do(req)
