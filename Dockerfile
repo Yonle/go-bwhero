@@ -2,7 +2,7 @@ FROM docker.io/alpine:edge
 
 LABEL org.opencontainers.image.source="https://github.com/Yonle/go-bwhero" \
       org.opencontainers.image.description="an image to run go-bwhero backend, an image compressor backend to be used with bandwidth hero addon." \
-      org.opencontainers.image.licenses="MIT"
+      org.opencontainers.image.licenses="BSD-3-Clause"
 
 WORKDIR /a
 COPY . .
