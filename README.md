@@ -23,7 +23,7 @@ docker compose up --build
 
 ## Listening
 ```
-LISTEN=localhost:8080 go-bwhero
+env LISTEN=localhost:8080 go-bwhero
 ```
 
 If you want to increase libvips ConcurrencyLevel, You could change it by setting `CONCURRENCY_LEVEL` environment variable.
@@ -32,7 +32,7 @@ By default, `go-bwhero` did not have a limit of original bytes during fetching. 
 
 ```
 # This will start a server with a limit of 50 MB
-IMAGESIZELIMIT=50000000 go-bwhero
+env IMAGESIZELIMIT=50000000 go-bwhero
 ```
 ---
 
@@ -46,5 +46,5 @@ Due to Golang's garbage cleaner nature, You might want to adjust `GOMEMLIMIT`, `
 Example:
 
 ```
-GOMEMLIMIT=512MiB GOMAXPROCS=2 GOGC=30 ./bwhero
+env GOMEMLIMIT=512MiB GOMAXPROCS=2 GOGC=30 ./bwhero
 ```
