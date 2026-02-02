@@ -7,7 +7,7 @@ RUN apk add --no-cache go vips-dev vips-magick imagemagick pkgconf
 WORKDIR /src/
 COPY . .
 
-RUN go build -v -x -trimpath -ldflags="-s -w -buildid=" -buildvcs=false -o /out/exec.bin .
+RUN go build -v -trimpath -ldflags="-s -w -buildid=" -buildvcs=false -o /out/exec.bin .
 
 # -- after build
 
