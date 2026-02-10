@@ -48,3 +48,12 @@ Example:
 ```
 env GOMEMLIMIT=512MiB GOMAXPROCS=2 GOGC=30 ./bwhero
 ```
+
+## Testing
+
+By default, go-bwhero will redirect to the original image URL when it was found that user is opening the image in new tab. To make testing possible, You must add `nr` query tag in your request.
+
+Your request should look like this:
+```
+http://localhost:8080/?url=....&nr=1
+```
