@@ -34,6 +34,15 @@ func process_image(w http.ResponseWriter, resp *http.Response, quality, grayscal
 
 	defer img.Close()
 
+	// rotate properly
+	if img.Orientation() > 1 {
+		if err := img.Autorot(nil); err != nil {
+			return err
+		}
+	}
+
+	img.RemoveExif()
+
 	if grayscale == 1 {
 		if err := img.Colourspace(vips.InterpretationBW, nil); err != nil {
 			return err
