@@ -28,16 +28,24 @@ env LISTEN=localhost:8080 go-bwhero
 
 If you want to increase libvips ConcurrencyLevel, You could change it by setting `CONCURRENCY_LEVEL` environment variable.
 
-By default, `go-bwhero` did not have a limit of original bytes during fetching. You could configure it to redirect user to original image instead if an image is too big to be processed by setting `IMAGESIZELIMIT`
+## Setting up Limit
+
+### File Size
+
+The bigger the file size, The longer it takes to process and the more CPU cycles are being used. By default, go-bwhero did not have any limit on file size.
+
+You can set one (or two) of the following in environment variable to adjust:
+- IMAGESIZELIMIT
+- ANIMATIONSIZELIMIT (by default, it follows IMAGESIZELIMIT. If it's "-1", Then it will completely disable animation)
 
 ```
-# This will start a server with a limit of 50 MB
-env IMAGESIZELIMIT=50000000 go-bwhero
+# Max image size from upstream: 50 MB
+# Max animation size from upstream: 10 MB
+env IMAGESIZELIMIT=50000000 ANIMATIONSIZELIMIT=10000000 go-bwhero
 ```
 ---
 
-## Setting up Limit
-
+### Golang Memory Usage
 Due to Golang's garbage cleaner nature, You might want to adjust `GOMEMLIMIT`, `GOGC`, and `GOMAXPROCS` environment variable, where:
 - `GOMEMLIMIT`: Heap Limit (example: `512MiB`)
 - `GOGC`: Level of GC (example: `50` or `off`). The less, the more aggresive

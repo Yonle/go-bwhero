@@ -9,3 +9,4 @@ services:
     environment:
       LISTEN: 0.0.0.0:8080
       #IMAGESIZELIMIT: 50000000
+      #ANIMATIONSIZELIMIT: 10000000
