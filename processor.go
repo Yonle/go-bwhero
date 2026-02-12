@@ -8,11 +8,13 @@ import (
 )
 
 var plainLoadOptions = &vips.LoadOptions{
-	Access: vips.AccessSequential,
+	Access:     vips.AccessSequential,
+	Autorotate: true,
 }
 var animatedLoadOptions = &vips.LoadOptions{
-	Access: vips.AccessSequential,
-	N:      -1,
+	Access:     vips.AccessSequential,
+	Autorotate: true,
+	N:          -1,
 }
 
 type responseWriteCloser struct {
@@ -43,15 +45,6 @@ func process_image(w http.ResponseWriter, resp *http.Response, isAnimated bool, 
 
 	defer img.Close()
 
-	// rotate properly
-	if img.Orientation() > 1 {
-		if err := img.Autorot(nil); err != nil {
-			return err
-		}
-	}
-
-	img.RemoveExif()
-
 	if grayscale == 1 {
 		if err := img.Colourspace(vips.InterpretationBW, nil); err != nil {
 			return err
@@ -66,6 +59,7 @@ func process_image(w http.ResponseWriter, resp *http.Response, isAnimated bool, 
 		SmartSubsample: true,
 		MinSize:        true,
 		Q:              quality,
+		Keep:           vips.KeepIcc,
 	}
 
 	if img.Pages() > 1 { // animated
@@ -93,7 +87,5 @@ func process_image(w http.ResponseWriter, resp *http.Response, isAnimated bool, 
 	target := vips.NewTarget(writ)
 	defer target.Close()
 
-	img.WebpsaveTarget(target, &webpOpt)
-
-	return nil
+	return img.WebpsaveTarget(target, &webpOpt)
 }
