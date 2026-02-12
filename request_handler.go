@@ -11,15 +11,15 @@ import (
 )
 
 var imagesizelimit int64
+var animationsizelimit int64
 
 func init() {
-	i, err := strconv.ParseInt(os.Getenv("IMAGESIZELIMIT"), 10, 64)
+	imagesizelimit, _ = strconv.ParseInt(os.Getenv("IMAGESIZELIMIT"), 10, 64)
+	animationsizelimit, _ = strconv.ParseInt(os.Getenv("ANIMATIONSIZELIMIT"), 10, 64)
 
-	if err != nil {
-		return
+	if _, ok := os.LookupEnv("ANIMATIONSIZELIMIT"); !ok {
+		animationsizelimit = imagesizelimit
 	}
-
-	imagesizelimit = i
 }
 
 func request_handler(w http.ResponseWriter, r *http.Request) {
@@ -61,11 +61,29 @@ func request_handler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var isImage bool = strings.HasPrefix(resp.Header.Get("Content-Type"), "image/")
+	kind := resp.Header.Get("Content-Type")
+	isImage := strings.HasPrefix(kind, "image/")
+	isAnimated :=
+		strings.Contains(kind, "gif") ||
+			strings.Contains(kind, "webp") ||
+			strings.Contains(kind, "avif")
+
 	var isBig bool
 
-	if imagesizelimit > 0 {
-		isBig = resp.ContentLength > imagesizelimit
+	switch true {
+	case isImage:
+		if imagesizelimit > 0 {
+			isBig = resp.ContentLength > imagesizelimit
+		}
+	case isAnimated:
+		if animationsizelimit == -1 {
+			isBig = resp.ContentLength > imagesizelimit
+			isAnimated = false // process a frame instead.
+			break
+		}
+		if animationsizelimit > 0 {
+			isBig = resp.ContentLength > animationsizelimit
+		}
 	}
 
 	if resp.StatusCode >= 400 || !isImage || isBig {
@@ -78,7 +96,7 @@ func request_handler(w http.ResponseWriter, r *http.Request) {
 
 	processing_time := time.Now()
 
-	if err := process_image(w, resp, quality, grayscale); err != nil {
+	if err := process_image(w, resp, isAnimated, quality, grayscale); err != nil {
 		log.Printf("Failed to process %s: %s", origin_url, err)
 		http.Redirect(w, r, origin_url, http.StatusFound)
 		return
