@@ -13,6 +13,7 @@ var vips_config = &vips.Config{
 	MaxCacheFiles: 0,
 	MaxCacheMem:   0,
 	MaxCacheSize:  0,
+	ReportLeaks:   true,
 }
 
 func main() {
