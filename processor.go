@@ -7,10 +7,12 @@ import (
 	"github.com/cshum/vipsgen/vips"
 )
 
-var loadOptions *vips.LoadOptions
-
-func init() {
-	loadOptions = &vips.LoadOptions{}
+var plainLoadOptions = &vips.LoadOptions{
+	Access: vips.AccessSequential,
+}
+var animatedLoadOptions = &vips.LoadOptions{
+	Access: vips.AccessSequential,
+	N:      -1,
 }
 
 type responseWriteCloser struct {
@@ -21,12 +23,19 @@ func (rwc responseWriteCloser) Close() error {
 	return nil
 }
 
-func process_image(w http.ResponseWriter, resp *http.Response, quality, grayscale int) error {
+func process_image(w http.ResponseWriter, resp *http.Response, isAnimated bool, quality, grayscale int) error {
 	source := vips.NewSource(resp.Body)
 	defer source.Close()
 	defer resp.Body.Close()
 
-	img, err := vips.NewImageFromSource(source, loadOptions)
+	var img *vips.Image
+	var err error
+
+	if !isAnimated {
+		img, err = vips.NewImageFromSource(source, plainLoadOptions)
+	} else {
+		img, err = vips.NewImageFromSource(source, animatedLoadOptions)
+	}
 
 	if err != nil {
 		return err
@@ -60,8 +69,8 @@ func process_image(w http.ResponseWriter, resp *http.Response, quality, grayscal
 	}
 
 	if img.Pages() > 1 { // animated
-		webpOpt.Kmin = 9
-		webpOpt.Kmax = 17
+		webpOpt.Kmin = 3
+		webpOpt.Kmax = 30
 	}
 
 	h := w.Header()
@@ -71,6 +80,7 @@ func process_image(w http.ResponseWriter, resp *http.Response, quality, grayscal
 	h.Set("Cache-Control", "public, max-age=604800, stale-while-revalidate=86400") // cache for a week while asking for revalidation after a day
 	h.Set("Content-Encoding", "identity")
 	h.Set("Content-Type", "image/webp")
+	h.Set("Transfer-Encoding", "chunked")
 	h.Set("X-Original-Size", strconv.FormatInt(resp.ContentLength, 10))
 
 	// since we're going io to io, we can't count.
