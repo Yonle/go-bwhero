@@ -70,19 +70,22 @@ func request_handler(w http.ResponseWriter, r *http.Request) {
 
 	var isBig bool
 
-	switch true {
-	case isImage:
+	limit := imagesizelimit
+
+	if isAnimated && animationsizelimit != -1 {
+		limit = animationsizelimit
+	}
+
+	if limit > 0 {
+		isBig = resp.ContentLength > limit
+	}
+
+	// if it's too big for animation OR we forced a downgrade
+	if (isAnimated && animationsizelimit == -1) || (isAnimated && isBig) {
+		isAnimated = false
+		// Re-check size against image limit if we just downgraded from animation
 		if imagesizelimit > 0 {
 			isBig = resp.ContentLength > imagesizelimit
-		}
-	case isAnimated:
-		if animationsizelimit == -1 {
-			isBig = resp.ContentLength > imagesizelimit
-			isAnimated = false // process a frame instead.
-			break
-		}
-		if animationsizelimit > 0 {
-			isBig = resp.ContentLength > animationsizelimit
 		}
 	}
 
