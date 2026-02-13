@@ -8,13 +8,15 @@ import (
 )
 
 var plainLoadOptions = &vips.LoadOptions{
+	Access: vips.AccessSequential,
+}
+var cameraLoadOptions = &vips.LoadOptions{
 	Access:     vips.AccessSequential,
 	Autorotate: true,
 }
 var animatedLoadOptions = &vips.LoadOptions{
-	Access:     vips.AccessSequential,
-	Autorotate: true,
-	N:          -1,
+	Access: vips.AccessSequential,
+	N:      -1,
 }
 
 type responseWriteCloser struct {
@@ -25,7 +27,7 @@ func (rwc responseWriteCloser) Close() error {
 	return nil
 }
 
-func process_image(w http.ResponseWriter, resp *http.Response, isAnimated bool, quality, grayscale int) error {
+func process_image(w http.ResponseWriter, resp *http.Response, isAnimated bool, potentiallyCamera bool, quality, grayscale int) error {
 	source := vips.NewSource(resp.Body)
 	defer source.Close()
 	defer resp.Body.Close()
@@ -35,6 +37,8 @@ func process_image(w http.ResponseWriter, resp *http.Response, isAnimated bool, 
 
 	if !isAnimated {
 		img, err = vips.NewImageFromSource(source, plainLoadOptions)
+	} else if potentiallyCamera {
+		img, err = vips.NewImageFromSource(source, cameraLoadOptions)
 	} else {
 		img, err = vips.NewImageFromSource(source, animatedLoadOptions)
 	}

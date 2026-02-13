@@ -67,6 +67,11 @@ func request_handler(w http.ResponseWriter, r *http.Request) {
 		strings.Contains(kind, "gif") ||
 			strings.Contains(kind, "webp") ||
 			strings.Contains(kind, "avif")
+	potentiallyCamera :=
+		strings.Contains(kind, "jpeg") ||
+			strings.Contains(kind, "heic") ||
+			strings.Contains(kind, "heif") ||
+			strings.Contains(kind, "tiff")
 
 	var isBig bool
 
@@ -99,7 +104,7 @@ func request_handler(w http.ResponseWriter, r *http.Request) {
 
 	processing_time := time.Now()
 
-	if err := process_image(w, resp, isAnimated, quality, grayscale); err != nil {
+	if err := process_image(w, resp, isAnimated, potentiallyCamera, quality, grayscale); err != nil {
 		log.Printf("Failed to process %s: %s", origin_url, err)
 		http.Redirect(w, r, origin_url, http.StatusFound)
 		return
