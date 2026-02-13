@@ -35,12 +35,12 @@ func process_image(w http.ResponseWriter, resp *http.Response, isAnimated bool, 
 	var img *vips.Image
 	var err error
 
-	if !isAnimated {
-		img, err = vips.NewImageFromSource(source, plainLoadOptions)
+	if isAnimated {
+		img, err = vips.NewImageFromSource(source, animatedLoadOptions)
 	} else if potentiallyCamera {
 		img, err = vips.NewImageFromSource(source, cameraLoadOptions)
 	} else {
-		img, err = vips.NewImageFromSource(source, animatedLoadOptions)
+		img, err = vips.NewImageFromSource(source, plainLoadOptions)
 	}
 
 	if err != nil {
