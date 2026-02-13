@@ -35,8 +35,10 @@ If you want to increase libvips ConcurrencyLevel, You could change it by setting
 The bigger the file size, The longer it takes to process and the more CPU cycles are being used. By default, go-bwhero did not have any limit on file size.
 
 You can set one (or two) of the following in environment variable to adjust:
-- IMAGESIZELIMIT
-- ANIMATIONSIZELIMIT (by default, it follows IMAGESIZELIMIT. If it's "-1", Then it will completely disable animation)
+- `IMAGESIZELIMIT`
+- `ANIMATIONSIZELIMIT` (by default, it follows IMAGESIZELIMIT. If it's "-1", Then it will completely disable animation)
+
+Animated images tend to consume more RAM & CPU cycles when being processed. Disabling it might help reducing the load. 
 
 ```
 # Max image size from upstream: 50 MB
