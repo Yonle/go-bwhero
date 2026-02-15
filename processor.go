@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"net/http"
 	"strconv"
 
@@ -14,10 +15,6 @@ var cameraLoadOptions = &vips.LoadOptions{
 	Access:     vips.AccessSequential,
 	Autorotate: true,
 }
-var animatedLoadOptions = &vips.LoadOptions{
-	Access: vips.AccessSequential,
-	N:      -1,
-}
 
 type responseWriteCloser struct {
 	http.ResponseWriter
@@ -27,7 +24,7 @@ func (rwc responseWriteCloser) Close() error {
 	return nil
 }
 
-func process_image(w http.ResponseWriter, resp *http.Response, isAnimated bool, potentiallyCamera bool, quality, grayscale int) error {
+func process_image(ctx context.Context, w http.ResponseWriter, resp *http.Response, potentiallyCamera bool, quality, grayscale int) error {
 	source := vips.NewSource(resp.Body)
 	defer source.Close()
 	defer resp.Body.Close()
@@ -35,9 +32,7 @@ func process_image(w http.ResponseWriter, resp *http.Response, isAnimated bool, 
 	var img *vips.Image
 	var err error
 
-	if isAnimated {
-		img, err = vips.NewImageFromSource(source, animatedLoadOptions)
-	} else if potentiallyCamera {
+	if potentiallyCamera {
 		img, err = vips.NewImageFromSource(source, cameraLoadOptions)
 	} else {
 		img, err = vips.NewImageFromSource(source, plainLoadOptions)
@@ -48,6 +43,10 @@ func process_image(w http.ResponseWriter, resp *http.Response, isAnimated bool, 
 	}
 
 	defer img.Close()
+
+	if ce := ctx.Err(); ce != nil {
+		return ce
+	}
 
 	if grayscale == 1 {
 		if err := img.Colourspace(vips.InterpretationBW, nil); err != nil {
@@ -66,11 +65,6 @@ func process_image(w http.ResponseWriter, resp *http.Response, isAnimated bool, 
 		Keep:           vips.KeepIcc,
 	}
 
-	if img.Pages() > 1 { // animated
-		webpOpt.Kmin = 3
-		webpOpt.Kmax = 30
-	}
-
 	h := w.Header()
 	h.Set("Access-Control-Allow-Origin", "*")
 	h.Set("Cross-Origin-Resource-Policy", "cross-origin")
@@ -80,10 +74,6 @@ func process_image(w http.ResponseWriter, resp *http.Response, isAnimated bool, 
 	h.Set("Content-Type", "image/webp")
 	h.Set("Transfer-Encoding", "chunked")
 	h.Set("X-Original-Size", strconv.FormatInt(resp.ContentLength, 10))
-
-	// since we're going io to io, we can't count.
-	//h.Set("Content-Length", strconv.FormatInt(procsize, 10))
-	//h.Set("X-Bytes-Saved", strconv.FormatInt(imgsize-procsize, 10))
 
 	w.WriteHeader(200)
 
