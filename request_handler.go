@@ -22,7 +22,10 @@ func init() {
 	}
 }
 
-func request_handler(w http.ResponseWriter, r *http.Request) {
+func request_handler(
+	w http.ResponseWriter,
+	r *http.Request,
+) {
 	ctx := r.Context()
 	query := r.URL.Query()
 
@@ -62,9 +65,17 @@ func request_handler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	defer resp.Body.Close()
+
 	kind := resp.Header.Get("Content-Type")
 	isImage := strings.HasPrefix(kind, "image/")
-	isAnimated := strings.Contains(kind, "gif")
+
+	// animation
+	isGIF := strings.Contains(kind, "image/gif")
+	isAPNG := strings.Contains(kind, "image/apng")
+	isAnimated := isGIF || isAPNG
+
+	// camera / printer
 	potentiallyCamera :=
 		strings.Contains(kind, "jpeg") ||
 			strings.Contains(kind, "heic") ||
@@ -72,6 +83,13 @@ func request_handler(w http.ResponseWriter, r *http.Request) {
 			strings.Contains(kind, "tiff")
 
 	var isBig bool
+	var animformat string
+
+	if isGIF {
+		animformat = "gif"
+	} else if isAPNG {
+		animformat = "apng"
+	}
 
 	limit := imagesizelimit
 
@@ -109,7 +127,7 @@ func request_handler(w http.ResponseWriter, r *http.Request) {
 	processing_time := time.Now()
 
 	if isAnimated {
-		if err := process_anim(r.Context(), w, resp, quality, grayscale); err != nil {
+		if err := process_anim(r.Context(), w, resp, animformat, quality, grayscale); err != nil {
 			log.Printf("Failed to animate %s: %s", origin_url, err)
 			http.Redirect(w, r, origin_url, http.StatusFound)
 			return

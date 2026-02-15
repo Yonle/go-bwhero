@@ -24,10 +24,16 @@ func (rwc responseWriteCloser) Close() error {
 	return nil
 }
 
-func process_image(ctx context.Context, w http.ResponseWriter, resp *http.Response, potentiallyCamera bool, quality, grayscale int) error {
+func process_image(
+	ctx context.Context,
+	w http.ResponseWriter,
+	resp *http.Response,
+	potentiallyCamera bool,
+	quality,
+	grayscale int,
+) error {
 	source := vips.NewSource(resp.Body)
 	defer source.Close()
-	defer resp.Body.Close()
 
 	var img *vips.Image
 	var err error

@@ -13,7 +13,14 @@ var hc = http.Client{
 	},
 }
 
-func proxy(ctx context.Context, r *http.Request, origin_url string) (resp *http.Response, err error) {
+func proxy(
+	ctx context.Context,
+	r *http.Request,
+	origin_url string,
+) (
+	resp *http.Response,
+	err error,
+) {
 	req, err := http.NewRequestWithContext(ctx, r.Method, origin_url, nil)
 	if err != nil {
 		return nil, err

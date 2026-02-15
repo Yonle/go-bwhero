@@ -11,7 +11,9 @@ import (
 
 var semaphore_anim = make(chan struct{}, runtime.NumCPU())
 
-func wait(ctx context.Context) bool {
+func wait(
+	ctx context.Context,
+) bool {
 	select {
 	case semaphore_anim <- struct{}{}:
 		return true
@@ -21,7 +23,14 @@ func wait(ctx context.Context) bool {
 	}
 }
 
-func process_anim(ctx context.Context, w http.ResponseWriter, resp *http.Response, quality, grayscale int) error {
+func process_anim(
+	ctx context.Context,
+	w http.ResponseWriter,
+	resp *http.Response,
+	format string,
+	quality,
+	grayscale int,
+) error {
 	if !wait(ctx) {
 		return context.Canceled
 	}
@@ -36,6 +45,7 @@ func process_anim(ctx context.Context, w http.ResponseWriter, resp *http.Respons
 
 	cmd := exec.CommandContext(ctx, "ffmpeg",
 		"-loglevel", "error",
+		"-f", format,
 		"-i", "pipe:0", // Input from stdin
 		"-vf", filters, // Video filters (Greyscale)
 		"-c:v", "libwebp_anim", // WebP encoder
