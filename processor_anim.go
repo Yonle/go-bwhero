@@ -46,7 +46,7 @@ func process_anim(
 	filters += ",format=yuva420p"
 
 	cmd := exec.CommandContext(ctx, "ffmpeg",
-		"-loglevel", "warn",
+		"-loglevel", "warning",
 		"-f", format,
 		"-i", "pipe:0", // Input from stdin
 		"-vf", filters, // Video filters (Greyscale)
