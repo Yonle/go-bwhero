@@ -57,6 +57,7 @@ func request_handler(w http.ResponseWriter, r *http.Request) {
 
 	resp, err := proxy(ctx, r, origin_url)
 	if err != nil {
+		log.Printf("Failed to fetch %s. Redirecting", origin_url)
 		http.Redirect(w, r, origin_url, http.StatusFound)
 		return
 	}
@@ -98,6 +99,9 @@ func request_handler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if resp.StatusCode >= 400 || !isImage || isBig {
+		if resp.StatusCode >= 400 {
+			log.Printf("Got status code %d on %s", resp.StatusCode, origin_url)
+		}
 		resp.Body.Close()
 		http.Redirect(w, r, origin_url, http.StatusFound)
 		return
@@ -107,10 +111,18 @@ func request_handler(w http.ResponseWriter, r *http.Request) {
 
 	processing_time := time.Now()
 
-	if err := process_image(w, resp, isAnimated, potentiallyCamera, quality, grayscale); err != nil {
-		log.Printf("Failed to process %s: %s", origin_url, err)
-		http.Redirect(w, r, origin_url, http.StatusFound)
-		return
+	if isAnimated {
+		if err := process_anim(r.Context(), w, resp, quality, grayscale); err != nil {
+			log.Printf("Failed to animate %s: %s", origin_url, err)
+			http.Redirect(w, r, origin_url, http.StatusFound)
+			return
+		}
+	} else {
+		if err := process_image(r.Context(), w, resp, potentiallyCamera, quality, grayscale); err != nil {
+			log.Printf("Failed to process %s: %s", origin_url, err)
+			http.Redirect(w, r, origin_url, http.StatusFound)
+			return
+		}
 	}
 
 	pt := time.Since(processing_time)
