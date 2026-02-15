@@ -13,6 +13,7 @@ var plainLoadOptions = &vips.LoadOptions{
 }
 var cameraLoadOptions = &vips.LoadOptions{
 	Access:     vips.AccessSequential,
+	Shrink:     2,
 	Autorotate: true,
 }
 
