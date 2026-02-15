@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"net/http"
+	"os"
 	"os/exec"
 	"runtime"
 	"strconv"
@@ -47,6 +48,7 @@ func process_anim(ctx context.Context, w http.ResponseWriter, resp *http.Respons
 
 	cmd.Stdin = resp.Body
 	cmd.Stdout = w
+	cmd.Stderr = os.Stderr
 
 	h := w.Header()
 	h.Set("Access-Control-Allow-Origin", "*")
