@@ -72,8 +72,8 @@ func request_handler(
 
 	// animation
 	isGIF := strings.Contains(kind, "image/gif")
-	isAPNG := strings.Contains(kind, "image/apng")
-	isAnimated := isGIF || isAPNG
+	//isAPNG := strings.Contains(kind, "image/apng")
+	isAnimated := isGIF //|| isAPNG
 
 	// camera / printer
 	potentiallyCamera :=
@@ -83,13 +83,13 @@ func request_handler(
 			strings.Contains(kind, "tiff")
 
 	var isBig bool
-	var animformat string
+	var animformat string = "gif"
 
-	if isGIF {
+	/*if isGIF {
 		animformat = "gif"
 	} else if isAPNG {
 		animformat = "apng"
-	}
+	}*/
 
 	limit := imagesizelimit
 

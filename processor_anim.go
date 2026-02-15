@@ -43,15 +43,17 @@ func process_anim(
 		filters = "hue=s=0"
 	}
 
+	filters += ",format=yuva420p"
+
 	cmd := exec.CommandContext(ctx, "ffmpeg",
-		"-loglevel", "error",
+		"-loglevel", "warn",
 		"-f", format,
 		"-i", "pipe:0", // Input from stdin
 		"-vf", filters, // Video filters (Greyscale)
 		"-c:v", "libwebp_anim", // WebP encoder
 		"-loop", "0", // Infinite loop
 		"-q:v", strconv.Itoa(quality),
-		"-compression_level", "4",
+		"-compression_level", "3",
 		"-f", "webp", // Output format
 		"pipe:1", // Output to stdout
 	)
