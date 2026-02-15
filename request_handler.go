@@ -91,6 +91,9 @@ func request_handler(w http.ResponseWriter, r *http.Request) {
 		// Re-check size against image limit if we just downgraded from animation
 		if imagesizelimit > 0 {
 			isBig = resp.ContentLength > imagesizelimit
+		} else {
+			// we got no limit being set.
+			isBig = false
 		}
 	}
 
