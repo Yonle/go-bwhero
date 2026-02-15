@@ -64,10 +64,7 @@ func request_handler(w http.ResponseWriter, r *http.Request) {
 
 	kind := resp.Header.Get("Content-Type")
 	isImage := strings.HasPrefix(kind, "image/")
-	isAnimated :=
-		strings.Contains(kind, "gif") ||
-			strings.Contains(kind, "webp") ||
-			strings.Contains(kind, "avif")
+	isAnimated := strings.Contains(kind, "gif")
 	potentiallyCamera :=
 		strings.Contains(kind, "jpeg") ||
 			strings.Contains(kind, "heic") ||
