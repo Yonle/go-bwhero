@@ -2,7 +2,7 @@
 
 FROM docker.io/alpine:20260127 AS builder
 
-RUN apk add --no-cache go vips-dev vips-magick imagemagick pkgconf
+RUN apk add --no-cache go vips-dev vips-magick imagemagick pkgconf ffmpeg
 
 WORKDIR /src/
 COPY . .
