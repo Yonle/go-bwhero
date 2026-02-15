@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"net/http"
-	"os"
 	"os/exec"
 	"runtime"
 	"strconv"
@@ -27,9 +26,7 @@ func process_anim(
 	ctx context.Context,
 	w http.ResponseWriter,
 	resp *http.Response,
-	format string,
-	quality,
-	grayscale int,
+	quality int,
 ) error {
 	if !wait(ctx) {
 		return context.Canceled
@@ -37,28 +34,18 @@ func process_anim(
 
 	defer func() { <-semaphore_anim }()
 
-	filters := "null"
-
-	if grayscale == 1 {
-		filters = "hue=s=0"
-	}
-
-	cmd := exec.CommandContext(ctx, "ffmpeg",
-		"-loglevel", "error",
-		"-f", format,
-		"-i", "pipe:0", // Input from stdin
-		"-vf", filters, // Video filters (Greyscale)
-		"-c:v", "libwebp_anim", // WebP encoder
-		"-loop", "0", // Infinite loop
-		"-q:v", strconv.Itoa(quality),
-		"-compression_level", "4",
-		"-f", "webp", // Output format
-		"pipe:1", // Output to stdout
+	cmd := exec.CommandContext(ctx, "gif2webp",
+		"-q", strconv.Itoa(quality),
+		"-m", "3", // Effort equivalent
+		"-mixed",  // Mixed encoding
+		"-mt",     // Multi-threading
+		"-o", "-", // Output to stdout
+		"--", // End of flags
+		"-",  // Input from stdin
 	)
 
 	cmd.Stdin = resp.Body
 	cmd.Stdout = w
-	cmd.Stderr = os.Stderr
 
 	h := w.Header()
 	h.Set("Access-Control-Allow-Origin", "*")

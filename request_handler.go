@@ -72,8 +72,7 @@ func request_handler(
 
 	// animation
 	isGIF := strings.Contains(kind, "image/gif")
-	isAPNG := strings.Contains(kind, "image/apng")
-	isAnimated := isGIF || isAPNG
+	isAnimated := isGIF
 
 	// camera / printer
 	potentiallyCamera :=
@@ -83,13 +82,6 @@ func request_handler(
 			strings.Contains(kind, "tiff")
 
 	var isBig bool
-	var animformat string
-
-	if isGIF {
-		animformat = "gif"
-	} else if isAPNG {
-		animformat = "apng"
-	}
 
 	limit := imagesizelimit
 
@@ -127,7 +119,7 @@ func request_handler(
 	processing_time := time.Now()
 
 	if isAnimated {
-		if err := process_anim(r.Context(), w, resp, animformat, quality, grayscale); err != nil {
+		if err := process_anim(r.Context(), w, resp, quality); err != nil {
 			log.Printf("Failed to animate %s: %s", origin_url, err)
 			http.Redirect(w, r, origin_url, http.StatusFound)
 			return

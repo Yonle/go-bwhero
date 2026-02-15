@@ -5,7 +5,7 @@ Rewritten backend of [bandwidth-hero-proxy](https://github.com/Yonle/bandwidth-h
 **Requirements:**
 - Have [Go](https://go.dev) installed
 - Have [libvips](https://github.com/libvips/libvips) 8.18.0 installed
-- Have [ffmpeg](https://ffmpeg.org) installed *[optional. only for animation]*
+- Have [`libwebp-utils` (has `gif2webp` command)](https://developers.google.com/speed/webp/docs/precompiled) installed *[optional. only for animation]*
 
 **Install:**
 ```
@@ -45,7 +45,7 @@ You can set one (or two) of the following in environment variable to adjust:
 env IMAGESIZELIMIT=50000000 ANIMATIONSIZELIMIT=50000000 go-bwhero
 ```
 
-You will need to have ffmpeg installed in your system in order for the animation conversion to work. You can still run go-bwhero without it by disabling animation via `ANIMATIONSIZELIMIT=-1`.
+You will need to have [`libwebp-utils` (has `gif2webp` command)](https://developers.google.com/speed/webp/docs/precompiled) installed in your system in order for the animation conversion to work. You can still run go-bwhero without it by disabling animation via `ANIMATIONSIZELIMIT=-1`.
 
 ---
 
