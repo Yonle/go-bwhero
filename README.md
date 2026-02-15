@@ -5,6 +5,7 @@ Rewritten backend of [bandwidth-hero-proxy](https://github.com/Yonle/bandwidth-h
 **Requirements:**
 - Have [Go](https://go.dev) installed
 - Have [libvips](https://github.com/libvips/libvips) 8.18.0 installed
+- Have [ffmpeg](https://ffmpeg.org) installed *[optional. only for animation]*
 
 **Install:**
 ```
@@ -38,13 +39,14 @@ You can set one (or two) of the following in environment variable to adjust:
 - `IMAGESIZELIMIT`
 - `ANIMATIONSIZELIMIT` (by default, it follows IMAGESIZELIMIT. If it's "-1", Then it will completely disable animation)
 
-Animated images tend to consume more RAM & CPU cycles when being processed. Disabling it might help reducing the load. 
-
 ```
 # Max image size from upstream: 50 MB
-# Max animation size from upstream: 10 MB
-env IMAGESIZELIMIT=50000000 ANIMATIONSIZELIMIT=10000000 go-bwhero
+# Max animation size from upstream: 50 MB
+env IMAGESIZELIMIT=50000000 ANIMATIONSIZELIMIT=50000000 go-bwhero
 ```
+
+You will need to have ffmpeg installed in your system in order for the animation conversion to work. You can still run go-bwhero without it by disabling animation via `ANIMATIONSIZELIMIT=-1`.
+
 ---
 
 ### Golang Memory Usage
