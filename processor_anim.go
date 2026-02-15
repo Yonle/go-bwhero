@@ -4,10 +4,28 @@ import (
 	"context"
 	"net/http"
 	"os/exec"
+	"runtime"
 	"strconv"
 )
 
+var semaphore_anim = make(chan struct{}, runtime.NumCPU())
+
+func wait(ctx context.Context) bool {
+	select {
+	case semaphore_anim <- struct{}{}:
+		return true
+	case <-ctx.Done():
+		return true
+	}
+}
+
 func process_anim(ctx context.Context, w http.ResponseWriter, resp *http.Response, quality, grayscale int) error {
+	if !wait(ctx) {
+		return context.Canceled
+	}
+
+	defer func() { <-semaphore_anim }()
+
 	filters := "null"
 
 	if grayscale == 1 {
