@@ -15,6 +15,7 @@ func wait(ctx context.Context) bool {
 	case semaphore_anim <- struct{}{}:
 		return true
 	case <-ctx.Done():
+		<-semaphore_anim
 		return true
 	}
 }
