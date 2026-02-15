@@ -53,7 +53,7 @@ func process_anim(
 		"-c:v", "libwebp_anim", // WebP encoder
 		"-loop", "0", // Infinite loop
 		"-q:v", strconv.Itoa(quality),
-		"-compression_level", "3",
+		"-compression_level", "2",
 		"-f", "webp", // Output format
 		"pipe:1", // Output to stdout
 	)

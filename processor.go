@@ -61,7 +61,7 @@ func process_image(
 	}
 
 	webpOpt := vips.WebpsaveTargetOptions{
-		Effort:         3,
+		Effort:         2,
 		NearLossless:   false,
 		Lossless:       false,
 		Mixed:          true,
