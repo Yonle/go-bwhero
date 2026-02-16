@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"os"
@@ -12,6 +13,15 @@ import (
 
 var imagesizelimit int64
 var animationsizelimit int64
+
+type fakeReadCloser struct {
+	io.Reader
+}
+
+func (frc fakeReadCloser) Close() error {
+	// do absolutely nothing
+	return nil
+}
 
 func init() {
 	imagesizelimit, _ = strconv.ParseInt(os.Getenv("IMAGESIZELIMIT"), 10, 64)
@@ -125,15 +135,16 @@ func request_handler(
 	ft := time.Since(fetch_time)
 
 	processing_time := time.Now()
+	body := io.LimitReader(resp.Body, resp.ContentLength)
 
 	if isAnimated {
-		if err := process_anim(r.Context(), w, resp, animformat, quality, grayscale); err != nil {
+		if err := process_anim(r.Context(), w, body, animformat, quality, grayscale); err != nil {
 			log.Printf("Failed to animate %s: %s", origin_url, err)
 			http.Redirect(w, r, origin_url, http.StatusFound)
 			return
 		}
 	} else {
-		if err := process_image(r.Context(), w, resp, potentiallyCamera, quality, grayscale); err != nil {
+		if err := process_image(r.Context(), w, fakeReadCloser{body}, potentiallyCamera, quality, grayscale); err != nil {
 			log.Printf("Failed to process %s: %s", origin_url, err)
 			http.Redirect(w, r, origin_url, http.StatusFound)
 			return

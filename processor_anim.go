@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"io"
 	"net/http"
 	"os"
 	"os/exec"
@@ -26,7 +27,7 @@ func wait(
 func process_anim(
 	ctx context.Context,
 	w http.ResponseWriter,
-	resp *http.Response,
+	body io.Reader,
 	format string,
 	quality,
 	grayscale int,
@@ -58,7 +59,7 @@ func process_anim(
 		"pipe:1", // Output to stdout
 	)
 
-	cmd.Stdin = resp.Body
+	cmd.Stdin = body
 	cmd.Stdout = w
 	cmd.Stderr = os.Stderr
 
@@ -70,7 +71,6 @@ func process_anim(
 	h.Set("Content-Encoding", "identity")
 	h.Set("Content-Type", "image/webp")
 	h.Set("Transfer-Encoding", "chunked")
-	h.Set("X-Original-Size", strconv.FormatInt(resp.ContentLength, 10))
 
 	w.WriteHeader(200)
 

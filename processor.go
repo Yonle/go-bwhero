@@ -2,8 +2,8 @@ package main
 
 import (
 	"context"
+	"io"
 	"net/http"
-	"strconv"
 
 	"github.com/cshum/vipsgen/vips"
 )
@@ -27,12 +27,12 @@ func (rwc responseWriteCloser) Close() error {
 func process_image(
 	ctx context.Context,
 	w http.ResponseWriter,
-	resp *http.Response,
+	body io.ReadCloser,
 	potentiallyCamera bool,
 	quality,
 	grayscale int,
 ) error {
-	source := vips.NewSource(resp.Body)
+	source := vips.NewSource(body)
 	defer source.Close()
 
 	var img *vips.Image
@@ -79,7 +79,6 @@ func process_image(
 	h.Set("Content-Encoding", "identity")
 	h.Set("Content-Type", "image/webp")
 	h.Set("Transfer-Encoding", "chunked")
-	h.Set("X-Original-Size", strconv.FormatInt(resp.ContentLength, 10))
 
 	w.WriteHeader(200)
 
