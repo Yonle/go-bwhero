@@ -13,7 +13,6 @@ var plainLoadOptions = &vips.LoadOptions{
 }
 var cameraLoadOptions = &vips.LoadOptions{
 	Access:     vips.AccessSequential,
-	Shrink:     2,
 	Autorotate: true,
 }
 
@@ -65,11 +64,11 @@ func process_image(
 		Effort:         2,
 		NearLossless:   false,
 		Lossless:       false,
-		Mixed:          true,
-		SmartSubsample: true,
-		MinSize:        true,
+		Mixed:          false,
+		SmartSubsample: false,
+		MinSize:        false,
 		Q:              quality,
-		Keep:           vips.KeepIcc,
+		Keep:           vips.KeepNone,
 	}
 
 	h := w.Header()
