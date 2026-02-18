@@ -30,5 +30,12 @@ func proxy(
 	req.Header.Set("User-Agent", "go-bwhero [https://github.com/Yonle/bwhero]")
 	req.Header.Set("Via", "2.0 go-bwhero")
 
+	// if it has a referrer, set it
+	if ref := r.Referer(); len(ref) > 0 {
+		req.Header.Set("Referer", ref)
+	}
+
+	copyClientHeaders(req.Header, r.Header)
+
 	return hc.Do(req)
 }
