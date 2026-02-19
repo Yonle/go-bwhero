@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"io"
-	"net/http"
 	"os"
 	"os/exec"
 	"runtime"
@@ -26,7 +25,7 @@ func wait(
 
 func process_anim(
 	ctx context.Context,
-	w http.ResponseWriter,
+	w io.Writer,
 	body io.Reader,
 	format string,
 	quality,
@@ -62,17 +61,6 @@ func process_anim(
 	cmd.Stdin = body
 	cmd.Stdout = w
 	cmd.Stderr = os.Stderr
-
-	h := w.Header()
-	h.Set("Access-Control-Allow-Origin", "*")
-	h.Set("Cross-Origin-Resource-Policy", "cross-origin")
-	h.Set("Cross-Origin-Embedder-Policy", "unsafe-none")
-	h.Set("Cache-Control", "public, max-age=604800, immutable")
-	h.Set("Content-Encoding", "identity")
-	h.Set("Content-Type", "image/webp")
-	h.Set("Transfer-Encoding", "chunked")
-
-	w.WriteHeader(200)
 
 	return cmd.Run()
 }

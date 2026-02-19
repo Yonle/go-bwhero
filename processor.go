@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"io"
-	"net/http"
 
 	"github.com/cshum/vipsgen/vips"
 )
@@ -16,17 +15,9 @@ var cameraLoadOptions = &vips.LoadOptions{
 	Autorotate: true,
 }
 
-type responseWriteCloser struct {
-	http.ResponseWriter
-}
-
-func (rwc responseWriteCloser) Close() error {
-	return nil
-}
-
 func process_image(
 	ctx context.Context,
-	w http.ResponseWriter,
+	w io.WriteCloser,
 	body io.ReadCloser,
 	potentiallyCamera bool,
 	quality,
@@ -71,19 +62,7 @@ func process_image(
 		Keep:           vips.KeepNone,
 	}
 
-	h := w.Header()
-	h.Set("Access-Control-Allow-Origin", "*")
-	h.Set("Cross-Origin-Resource-Policy", "cross-origin")
-	h.Set("Cross-Origin-Embedder-Policy", "unsafe-none")
-	h.Set("Cache-Control", "public, max-age=604800, immutable")
-	h.Set("Content-Encoding", "identity")
-	h.Set("Content-Type", "image/webp")
-	h.Set("Transfer-Encoding", "chunked")
-
-	w.WriteHeader(200)
-
-	writ := responseWriteCloser{w}
-	target := vips.NewTarget(writ)
+	target := vips.NewTarget(w)
 	defer target.Close()
 
 	return img.WebpsaveTarget(target, &webpOpt)

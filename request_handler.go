@@ -5,6 +5,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	_ "net/http/pprof"
 	"os"
 	"strconv"
 	"strings"
@@ -144,12 +145,14 @@ func request_handler(
 	ft := time.Since(fetch_time)
 
 	processing_time := time.Now()
+	var writ io.WriteCloser = &clientWriter{w, false}
+
 	if isVideo {
 		// immediately close the body. We won't use it.
 		resp.Body.Close()
 
 		h := HeaderToFFmpegFormat(resp.Request.Header)
-		if err := process_vidthumb(r.Context(), w, origin_url, h, quality, grayscale); err != nil {
+		if err := process_vidthumb(r.Context(), writ, origin_url, h, quality, grayscale); err != nil {
 			log.Printf("Failed to thumbnail the video %s: %s", origin_url, err)
 			http.Redirect(w, r, origin_url, http.StatusFound)
 			return
@@ -166,13 +169,13 @@ func request_handler(
 	body := io.LimitReader(resp.Body, resp.ContentLength)
 
 	if isAnimated {
-		if err := process_anim(r.Context(), w, body, animformat, quality, grayscale); err != nil {
+		if err := process_anim(r.Context(), writ, body, animformat, quality, grayscale); err != nil {
 			log.Printf("Failed to animate %s: %s", origin_url, err)
 			http.Redirect(w, r, origin_url, http.StatusFound)
 			return
 		}
 	} else {
-		if err := process_image(r.Context(), w, fakeReadCloser{body}, potentiallyCamera, quality, grayscale); err != nil {
+		if err := process_image(r.Context(), writ, fakeReadCloser{body}, potentiallyCamera, quality, grayscale); err != nil {
 			log.Printf("Failed to process %s: %s", origin_url, err)
 			http.Redirect(w, r, origin_url, http.StatusFound)
 			return
