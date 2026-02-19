@@ -2,33 +2,18 @@ package main
 
 import (
 	"context"
-	"io"
 	"net/http"
 	"os"
 	"os/exec"
-	"runtime"
 	"strconv"
+	"strings"
 )
 
-var semaphore_anim = make(chan struct{}, runtime.NumCPU())
-
-func wait(
-	ctx context.Context,
-) bool {
-	select {
-	case semaphore_anim <- struct{}{}:
-		return true
-	case <-ctx.Done():
-		<-semaphore_anim
-		return true
-	}
-}
-
-func process_anim(
+func process_vidthumb(
 	ctx context.Context,
 	w http.ResponseWriter,
-	body io.Reader,
-	format string,
+	url,
+	headers string,
 	quality,
 	grayscale int,
 ) error {
@@ -44,22 +29,22 @@ func process_anim(
 		filters = "hue=s=0"
 	}
 
-	filters += ",format=yuva420p"
+	filters += ",thumbnail"
 
 	cmd := exec.CommandContext(ctx, "ffmpeg",
 		"-loglevel", "warning",
-		"-f", format,
-		"-i", "pipe:0", // Input from stdin
-		"-vf", filters, // Video filters (Greyscale)
-		"-c:v", "libwebp_anim", // WebP encoder
-		"-loop", "0", // Infinite loop
+		"-user_agent", ua,
+		"-headers", headers,
+		"-i", url,
+		"-vf", filters,
+		"-frames:v", "1",
+		"-c:v", "libwebp",
 		"-q:v", strconv.Itoa(quality),
 		"-compression_level", "2",
 		"-f", "webp", // Output format
 		"pipe:1", // Output to stdout
 	)
 
-	cmd.Stdin = body
 	cmd.Stdout = w
 	cmd.Stderr = os.Stderr
 
@@ -75,4 +60,19 @@ func process_anim(
 	w.WriteHeader(200)
 
 	return cmd.Run()
+}
+
+func HeaderToFFmpegFormat(h http.Header) string {
+	var b strings.Builder
+
+	for key, values := range h {
+		for _, v := range values {
+			b.WriteString(key)
+			b.WriteString(": ")
+			b.WriteString(v)
+			b.WriteString("\r\n")
+		}
+	}
+
+	return b.String()
 }

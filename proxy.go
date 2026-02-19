@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"net/http"
+	"os"
 	"time"
 )
 
@@ -11,6 +12,14 @@ var hc = http.Client{
 	Transport: &http.Transport{
 		DisableCompression: true,
 	},
+}
+
+var ua = "go-bwhero [https://github.com/Yonle/bwhero]"
+
+func init() {
+	if ua_n, e := os.LookupEnv("USER_AGENT"); e {
+		ua = ua_n
+	}
 }
 
 func proxy(
@@ -27,7 +36,7 @@ func proxy(
 	}
 
 	req.Header.Set("Accept", "image/*")
-	req.Header.Set("User-Agent", "go-bwhero [https://github.com/Yonle/bwhero]")
+	req.Header.Set("User-Agent", ua)
 	req.Header.Set("Via", "2.0 go-bwhero")
 
 	// if it has a referrer, set it

@@ -75,7 +75,7 @@ func process_image(
 	h.Set("Access-Control-Allow-Origin", "*")
 	h.Set("Cross-Origin-Resource-Policy", "cross-origin")
 	h.Set("Cross-Origin-Embedder-Policy", "unsafe-none")
-	h.Set("Cache-Control", "public, max-age=604800, immutable") // cache for a week while asking for revalidation after a day
+	h.Set("Cache-Control", "public, max-age=604800, immutable")
 	h.Set("Content-Encoding", "identity")
 	h.Set("Content-Type", "image/webp")
 	h.Set("Transfer-Encoding", "chunked")

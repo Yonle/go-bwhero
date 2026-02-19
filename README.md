@@ -38,6 +38,7 @@ The bigger the file size, The longer it takes to process and the more CPU cycles
 You can set one (or two) of the following in environment variable to adjust:
 - `IMAGESIZELIMIT`
 - `ANIMATIONSIZELIMIT` (by default, it follows IMAGESIZELIMIT. If it's "-1", Then it will completely disable animation)
+- `VIDEOSIZELIMIT` (the same as above, except for thumbnailing only)
 
 ```
 # Max image size from upstream: 50 MB
@@ -60,6 +61,10 @@ Example:
 ```
 env GOMEMLIMIT=512MiB GOMAXPROCS=2 GOGC=30 ./bwhero
 ```
+
+### User Agent
+
+go-bwhero's default user agent is `go-bwhero [https://github.com/Yonle/bwhero]`, and it can be changed by overriding `USER_AGENT` variable.
 
 ## Testing
 

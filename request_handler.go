@@ -13,6 +13,7 @@ import (
 
 var imagesizelimit int64
 var animationsizelimit int64
+var videosizelimit int64
 
 type fakeReadCloser struct {
 	io.Reader
@@ -26,9 +27,14 @@ func (frc fakeReadCloser) Close() error {
 func init() {
 	imagesizelimit, _ = strconv.ParseInt(os.Getenv("IMAGESIZELIMIT"), 10, 64)
 	animationsizelimit, _ = strconv.ParseInt(os.Getenv("ANIMATIONSIZELIMIT"), 10, 64)
+	videosizelimit, _ = strconv.ParseInt(os.Getenv("VIDEOSIZELIMIT"), 10, 64)
 
 	if _, ok := os.LookupEnv("ANIMATIONSIZELIMIT"); !ok {
 		animationsizelimit = imagesizelimit
+	}
+
+	if _, ok := os.LookupEnv("VIDEOSIZELIMIT"); !ok {
+		videosizelimit = animationsizelimit
 	}
 }
 
@@ -79,6 +85,7 @@ func request_handler(
 
 	kind := resp.Header.Get("Content-Type")
 	isImage := strings.HasPrefix(kind, "image/")
+	isVideo := strings.HasPrefix(kind, "video/")
 
 	// animation
 	isGIF := strings.Contains(kind, "image/gif")
@@ -123,9 +130,11 @@ func request_handler(
 		}
 	}
 
-	if resp.StatusCode >= 400 || !isImage || isBig {
+	if resp.StatusCode >= 400 || (!isImage && !isVideo) || isBig {
 		if resp.StatusCode >= 400 {
 			log.Printf("Got status code %d on %s", resp.StatusCode, origin_url)
+		} else {
+			log.Printf("is an image: %v; is big: %v; url: %s", isImage, isBig, origin_url)
 		}
 		resp.Body.Close()
 		http.Redirect(w, r, origin_url, http.StatusFound)
@@ -135,6 +144,25 @@ func request_handler(
 	ft := time.Since(fetch_time)
 
 	processing_time := time.Now()
+	if isVideo {
+		// immediately close the body. We won't use it.
+		resp.Body.Close()
+
+		h := HeaderToFFmpegFormat(resp.Request.Header)
+		if err := process_vidthumb(r.Context(), w, origin_url, h, quality, grayscale); err != nil {
+			log.Printf("Failed to thumbnail the video %s: %s", origin_url, err)
+			http.Redirect(w, r, origin_url, http.StatusFound)
+			return
+		}
+
+		pt := time.Since(processing_time)
+		tl := time.Since(fetch_time)
+
+		log.Printf("Thumbnailing Took %.1fs | Fetch: %.1fs | Processing: %.1fs | URL: %s", tl.Seconds(), ft.Seconds(), pt.Seconds(), origin_url)
+
+		return
+	}
+
 	body := io.LimitReader(resp.Body, resp.ContentLength)
 
 	if isAnimated {

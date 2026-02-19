@@ -8,5 +8,6 @@ services:
       - "8080:8080"
     environment:
       LISTEN: 0.0.0.0:8080
+      #USER_AGENT: go-bwhero [https://github.com/Yonle/bwhero]
       #IMAGESIZELIMIT: 50000000
       #ANIMATIONSIZELIMIT: 50000000
