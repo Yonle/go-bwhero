@@ -115,6 +115,10 @@ func request_handler(
 		limit = animationsizelimit
 	}
 
+	if isVideo && videosizelimit != -1 {
+		limit = videosizelimit
+	}
+
 	if limit > 0 {
 		isBig = resp.ContentLength > limit
 	}
@@ -129,6 +133,10 @@ func request_handler(
 			// we got no limit being set.
 			isBig = false
 		}
+	}
+
+	if isVideo && videosizelimit == -1 {
+		isBig = true
 	}
 
 	if resp.StatusCode >= 400 || (!isImage && !isVideo) || isBig {
