@@ -11,3 +11,4 @@ services:
       #USER_AGENT: go-bwhero [https://github.com/Yonle/bwhero]
       #IMAGESIZELIMIT: 50000000
       #ANIMATIONSIZELIMIT: 50000000
+      #VIDEOSIZELIMIT: 100000000
