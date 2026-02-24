@@ -73,6 +73,12 @@ func request_handler(
 		quality = 80
 	}
 
+	anim := true
+	animP, err := strconv.Atoi(query.Get("a"))
+	if err == nil && animP == 0 {
+		anim = false
+	}
+
 	fetch_time := time.Now()
 
 	resp, err := proxy(ctx, r, origin_url)
@@ -91,7 +97,7 @@ func request_handler(
 	// animation
 	isGIF := strings.Contains(kind, "image/gif")
 	//isAPNG := strings.Contains(kind, "image/apng")
-	isAnimated := isGIF //|| isAPNG
+	isAnimated := (anim && isGIF) //|| isAPNG
 
 	// camera / printer
 	potentiallyCamera :=
