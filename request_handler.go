@@ -96,8 +96,8 @@ func request_handler(
 
 	// animation
 	isGIF := strings.Contains(kind, "image/gif")
-	//isAPNG := strings.Contains(kind, "image/apng")
-	isAnimated := (anim && isGIF) //|| isAPNG
+	isAPNG := strings.Contains(kind, "image/apng")
+	isAnimated := (anim && (isGIF || isAPNG))
 
 	// camera / printer
 	potentiallyCamera :=
@@ -109,11 +109,11 @@ func request_handler(
 	var isBig bool
 	var animformat string = "gif"
 
-	/*if isGIF {
+	if isGIF {
 		animformat = "gif"
 	} else if isAPNG {
 		animformat = "apng"
-	}*/
+	}
 
 	limit := imagesizelimit
 
@@ -160,6 +160,25 @@ func request_handler(
 
 	processing_time := time.Now()
 	var writ io.WriteCloser = &clientWriter{w, false}
+
+	if isAnimated && isAPNG {
+		// immediately close the body. We won't use it.
+		resp.Body.Close()
+
+		h := HeaderToFFmpegFormat(resp.Request.Header)
+		if err := process_apng(r.Context(), writ, origin_url, h, quality, grayscale); err != nil {
+			log.Printf("Failed to convert apng %s: %s", origin_url, err)
+			http.Redirect(w, r, origin_url, http.StatusFound)
+			return
+		}
+
+		pt := time.Since(processing_time)
+		tl := time.Since(fetch_time)
+
+		log.Printf("apng->webp Took %.1fs | Fetch: %.1fs | Processing: %.1fs | URL: %s", tl.Seconds(), ft.Seconds(), pt.Seconds(), origin_url)
+
+		return
+	}
 
 	if isVideo {
 		// immediately close the body. We won't use it.
