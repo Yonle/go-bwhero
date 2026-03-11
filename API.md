@@ -12,6 +12,7 @@ There's this query parameter that you should know:
 - `l` (uint) (optional): Range of image quality between 1-100. (default: `80`)
 - `a` (uint) (optional): Toggle whenever to convert GIF to animated webp. (default: `1`) (value: `1` for animated, `0` for static)
 - `nr` (uint) (optional): Toggle for no-redirect to the source image when this is viewed in browser's new tab (default: `0`) (value: `1` for no redirect, `0` for redirect)
+- `t` (uint) (optional): Toggle for thumbnail mode. It will thumbnail the picture with an maximum width of `t` (example: `t=1080` will make it resize to 1080p)
 
 Example:
 ```

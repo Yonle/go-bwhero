@@ -79,6 +79,12 @@ func request_handler(
 		anim = false
 	}
 
+	thumb := false
+	thumbWidth, err := strconv.Atoi(query.Get("t"))
+	if err == nil && thumbWidth > 0 {
+		thumb = true
+	}
+
 	fetch_time := time.Now()
 
 	resp, err := proxy(ctx, r, origin_url)
@@ -166,7 +172,7 @@ func request_handler(
 		resp.Body.Close()
 
 		h := HeaderToFFmpegFormat(resp.Request.Header)
-		if err := process_apng(r.Context(), writ, origin_url, h, quality, grayscale); err != nil {
+		if err := process_apng(r.Context(), writ, origin_url, h, thumbWidth, quality, grayscale); err != nil {
 			log.Printf("Failed to convert apng %s: %s", origin_url, err)
 			http.Redirect(w, r, origin_url, http.StatusFound)
 			return
@@ -185,7 +191,7 @@ func request_handler(
 		resp.Body.Close()
 
 		h := HeaderToFFmpegFormat(resp.Request.Header)
-		if err := process_vidthumb(r.Context(), writ, origin_url, h, quality, grayscale); err != nil {
+		if err := process_vidthumb(r.Context(), writ, origin_url, h, thumbWidth, quality, grayscale); err != nil {
 			log.Printf("Failed to thumbnail the video %s: %s", origin_url, err)
 			http.Redirect(w, r, origin_url, http.StatusFound)
 			return
@@ -202,8 +208,14 @@ func request_handler(
 	body := io.LimitReader(resp.Body, resp.ContentLength)
 
 	if isAnimated {
-		if err := process_anim(r.Context(), writ, body, animformat, quality, grayscale); err != nil {
+		if err := process_anim(r.Context(), writ, body, animformat, thumbWidth, quality, grayscale); err != nil {
 			log.Printf("Failed to animate %s: %s", origin_url, err)
+			http.Redirect(w, r, origin_url, http.StatusFound)
+			return
+		}
+	} else if thumb {
+		if err := process_thumb(r.Context(), writ, fakeReadCloser{body}, thumbWidth, quality, grayscale); err != nil {
+			log.Printf("Failed to process %s: %s", origin_url, err)
 			http.Redirect(w, r, origin_url, http.StatusFound)
 			return
 		}

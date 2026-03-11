@@ -17,6 +17,7 @@ func process_apng(
 	w io.Writer,
 	url,
 	headers string,
+	thumbWidth,
 	quality,
 	grayscale int,
 ) error {
@@ -26,13 +27,7 @@ func process_apng(
 
 	defer func() { <-semaphore_anim }()
 
-	filters := "null"
-
-	if grayscale == 1 {
-		filters = "hue=s=0"
-	}
-
-	filters += ",format=yuva420p"
+	filters := ffmpegFilterBuilder(grayscale, thumbWidth, false)
 
 	cmd := exec.CommandContext(ctx, "ffmpeg",
 		"-loglevel", "warning",

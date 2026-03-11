@@ -28,6 +28,7 @@ func process_anim(
 	w io.Writer,
 	body io.Reader,
 	format string,
+	thumbWidth,
 	quality,
 	grayscale int,
 ) error {
@@ -37,13 +38,7 @@ func process_anim(
 
 	defer func() { <-semaphore_anim }()
 
-	filters := "null"
-
-	if grayscale == 1 {
-		filters = "hue=s=0"
-	}
-
-	filters += ",format=yuva420p"
+	filters := ffmpegFilterBuilder(grayscale, thumbWidth, false)
 
 	cmd := exec.CommandContext(ctx, "ffmpeg",
 		"-loglevel", "warning",

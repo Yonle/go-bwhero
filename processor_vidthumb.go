@@ -15,6 +15,7 @@ func process_vidthumb(
 	w io.Writer,
 	url,
 	headers string,
+	thumbWidth,
 	quality,
 	grayscale int,
 ) error {
@@ -24,13 +25,7 @@ func process_vidthumb(
 
 	defer func() { <-semaphore_anim }()
 
-	filters := "null"
-
-	if grayscale == 1 {
-		filters = "hue=s=0"
-	}
-
-	filters += ",thumbnail"
+	filters := ffmpegFilterBuilder(grayscale, thumbWidth, true)
 
 	cmd := exec.CommandContext(ctx, "ffmpeg",
 		"-loglevel", "warning",
