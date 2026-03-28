@@ -14,7 +14,7 @@ var stringsBuilderPool = sync.Pool{
 	},
 }
 
-func ffmpegFilterBuilder(grayscale, thumbWidth int) string {
+func ffmpegFilterBuilder(grayscale, thumbWidth int, isVideo bool) string {
 	b := stringsBuilderPool.Get().(*strings.Builder)
 	b.Reset()
 	defer stringsBuilderPool.Put(b)
@@ -27,6 +27,10 @@ func ffmpegFilterBuilder(grayscale, thumbWidth int) string {
 
 	if thumbWidth != 0 {
 		fmt.Fprintf(b, ",scale='min(%d,iw)':-1", thumbWidth)
+	}
+
+	if isVideo {
+		b.WriteString(",thumbnail")
 	}
 
 	if b.Len() == 0 {

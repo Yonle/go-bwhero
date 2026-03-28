@@ -38,7 +38,7 @@ func process_anim(
 
 	defer func() { <-semaphore_anim }()
 
-	filters := ffmpegFilterBuilder(grayscale, thumbWidth)
+	filters := ffmpegFilterBuilder(grayscale, thumbWidth, false)
 
 	cmd := exec.CommandContext(ctx, "ffmpeg",
 		"-loglevel", "warning",

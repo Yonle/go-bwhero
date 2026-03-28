@@ -25,7 +25,7 @@ func process_vidthumb(
 
 	defer func() { <-semaphore_anim }()
 
-	filters := ffmpegFilterBuilder(grayscale, thumbWidth)
+	filters := ffmpegFilterBuilder(grayscale, thumbWidth, true)
 
 	cmd := exec.CommandContext(ctx, "ffmpeg",
 		"-loglevel", "warning",
