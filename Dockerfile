@@ -19,7 +19,8 @@ LABEL org.opencontainers.image.source="https://github.com/Yonle/go-bwhero" \
 
 RUN apk add --no-cache ffmpeg vips vips-magick imagemagick
 COPY --from=builder /out/exec.bin /bin/go-bwhero
+COPY backward-compatibility.sh /bin/backward-compatibility.sh
 
 ENV LISTEN=0.0.0.0:8080
 
-CMD ["/bin/go-bwhero"]
+CMD ["/bin/backward-compatibility.sh"]

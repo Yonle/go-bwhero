@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"net/http"
-	"os"
 	"time"
 )
 
@@ -14,13 +13,7 @@ var hc = http.Client{
 	},
 }
 
-var ua = "go-bwhero [https://github.com/Yonle/bwhero]"
-
-func init() {
-	if ua_n, e := os.LookupEnv("USER_AGENT"); e {
-		ua = ua_n
-	}
-}
+var ua string
 
 func proxy(
 	ctx context.Context,

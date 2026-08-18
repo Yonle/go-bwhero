@@ -1,10 +1,10 @@
 package main
 
 import (
+	"flag"
 	"log"
 	"net/http"
-	"os"
-	"strconv"
+	"runtime"
 
 	"github.com/cshum/vipsgen/vips"
 )
@@ -19,23 +19,58 @@ var vips_config = &vips.Config{
 func main() {
 	log.Println("bwhero, rewritten backend.")
 
-	listen, ok := os.LookupEnv("LISTEN")
-	if !ok {
-		listen = "localhost:8080"
-	}
+	listen := flag.String(
+		"listen",
+		"localhost:8080",
+		"Listen address",
+	)
 
-	concurrency_level, ok := os.LookupEnv("CONCURRENCY_LEVEL")
-	if ok {
-		cl, err := strconv.Atoi(concurrency_level)
-		if err != nil {
-			panic(err)
-		}
+	flag.IntVar(
+		&vips_config.ConcurrencyLevel,
+		"vipsConcurrencyLevel",
+		0,
+		"libvips concurrency level to use",
+	)
 
-		vips_config.ConcurrencyLevel = cl
-	}
+	flag.Int64Var(
+		&imagesizelimit,
+		"imgSizeLimit",
+		-1,
+		"Original image size limit in bytes",
+	)
+
+	flag.Int64Var(
+		&animationsizelimit,
+		"animSizeLimit",
+		-1,
+		"Original animation size limit in bytes",
+	)
+
+	flag.Int64Var(
+		&videosizelimit,
+		"videoSizeLimit",
+		-1,
+		"Original video size limit in bytes",
+	)
+
+	flag.StringVar(
+		&ua,
+		"userAgent",
+		"Mozilla/5.0; go-bwhero [https://github.com/Yonle/bwhero]",
+		"User agent that go-bwhero should use.",
+	)
+
+	workerLen := flag.Int(
+		"workers",
+		runtime.NumCPU(),
+		"Amount of workers to spawn",
+	)
+
+	flag.Parse()
 
 	start_vips()
-	serve_http(listen)
+	startWorker(*workerLen)
+	serve_http(*listen)
 }
 
 func start_vips() {

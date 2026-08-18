@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"log"
@@ -14,9 +15,30 @@ import (
 var imagesizelimit int64
 var animationsizelimit int64
 var videosizelimit int64
+var workers chan Task
 
 type fakeReadCloser struct {
 	io.Reader
+}
+
+type Task struct {
+	W   http.ResponseWriter
+	R   *http.Request
+	Ctx context.Context
+
+	URL string
+
+	Quality    int
+	Grayscale  int
+	Anim       bool
+	Thumb      bool
+	ThumbWidth int
+
+	Done chan struct{}
+}
+
+func (t *Task) canclRedir() {
+	http.Redirect(t.W, t.R, t.URL, http.StatusFound)
 }
 
 func (frc fakeReadCloser) Close() error {
@@ -35,6 +57,19 @@ func init() {
 
 	if _, ok := os.LookupEnv("VIDEOSIZELIMIT"); !ok {
 		videosizelimit = animationsizelimit
+	}
+}
+
+func startWorker(N int) {
+	workers = make(chan Task, N)
+	for i := 0; i < N; i++ {
+		go func(wID int) {
+			log.Printf("Worker %d started.", wID)
+			for task := range workers {
+				task.Process()
+				close(task.Done)
+			}
+		}(i)
 	}
 }
 
@@ -84,12 +119,38 @@ func request_handler(
 		thumb = true
 	}
 
+	task := Task{
+		W:   w,
+		R:   r,
+		Ctx: ctx,
+
+		URL: origin_url,
+
+		Grayscale:  grayscale,
+		Quality:    quality,
+		Anim:       anim,
+		Thumb:      thumb,
+		ThumbWidth: thumbWidth,
+
+		Done: make(chan struct{}),
+	}
+
+	select {
+	case workers <- task:
+		<-task.Done
+
+	case <-r.Context().Done():
+		return
+	}
+}
+
+func (t *Task) Process() {
 	fetch_time := time.Now()
 
-	resp, err := proxy(ctx, r, origin_url)
+	resp, err := proxy(t.Ctx, t.R, t.URL)
 	if err != nil {
-		log.Printf("Failed to fetch %s. Redirecting", origin_url)
-		http.Redirect(w, r, origin_url, http.StatusFound)
+		log.Printf("Failed to fetch %s. Redirecting", t.URL)
+		http.Redirect(t.W, t.R, t.URL, http.StatusFound)
 		return
 	}
 
@@ -102,7 +163,7 @@ func request_handler(
 	// animation
 	isGIF := strings.Contains(kind, "image/gif")
 	isAPNG := strings.Contains(kind, "image/apng")
-	isAnimated := (anim && (isGIF || isAPNG))
+	isAnimated := (t.Anim && (isGIF || isAPNG))
 
 	// camera / printer
 	potentiallyCamera :=
@@ -130,12 +191,13 @@ func request_handler(
 		limit = videosizelimit
 	}
 
+	// if limit is set
 	if limit > 0 {
 		isBig = resp.ContentLength > limit
 	}
 
 	// if it's too big for animation OR we forced a downgrade
-	if (isAnimated && animationsizelimit == -1) || (isAnimated && isBig) {
+	if (isAnimated && animationsizelimit == -2) || (isAnimated && isBig) {
 		isAnimated = false
 		// Re-check size against image limit if we just downgraded from animation
 		if imagesizelimit > 0 {
@@ -146,41 +208,42 @@ func request_handler(
 		}
 	}
 
-	if isVideo && videosizelimit == -1 {
+	// if video thumbnailing is disabled, do not process at all
+	if isVideo && videosizelimit == -2 {
 		isBig = true
 	}
 
 	if resp.StatusCode >= 400 || (!isImage && !isVideo) || isBig {
 		if resp.StatusCode >= 400 {
-			log.Printf("Got status code %d on %s", resp.StatusCode, origin_url)
+			log.Printf("Got status code %d on %s", resp.StatusCode, t.URL)
 		} else {
-			log.Printf("is an image: %v; is big: %v; url: %s", isImage, isBig, origin_url)
+			log.Printf("is an image: %v; is big: %v; url: %s", isImage, isBig, t.URL)
 		}
 		resp.Body.Close()
-		http.Redirect(w, r, origin_url, http.StatusFound)
+		t.canclRedir()
 		return
 	}
 
 	ft := time.Since(fetch_time)
 
 	processing_time := time.Now()
-	var writ io.WriteCloser = &clientWriter{w, false}
+	var writ io.WriteCloser = &clientWriter{t.W, false}
 
 	if isAnimated && isAPNG {
 		// immediately close the body. We won't use it.
 		resp.Body.Close()
 
 		h := HeaderToFFmpegFormat(resp.Request.Header)
-		if err := process_apng(r.Context(), writ, origin_url, h, thumbWidth, quality, grayscale); err != nil {
-			log.Printf("Failed to convert apng %s: %s", origin_url, err)
-			http.Redirect(w, r, origin_url, http.StatusFound)
+		if err := process_apng(t.Ctx, writ, t.URL, h, t.ThumbWidth, t.Quality, t.Grayscale); err != nil {
+			log.Printf("Failed to convert apng %s: %s", t.URL, err)
+			t.canclRedir()
 			return
 		}
 
 		pt := time.Since(processing_time)
 		tl := time.Since(fetch_time)
 
-		log.Printf("apng->webp Took %.1fs | Fetch: %.1fs | Processing: %.1fs | URL: %s", tl.Seconds(), ft.Seconds(), pt.Seconds(), origin_url)
+		log.Printf("apng->webp Took %.1fs | Fetch: %.1fs | Processing: %.1fs | URL: %s", tl.Seconds(), ft.Seconds(), pt.Seconds(), t.URL)
 
 		return
 	}
@@ -190,16 +253,16 @@ func request_handler(
 		resp.Body.Close()
 
 		h := HeaderToFFmpegFormat(resp.Request.Header)
-		if err := process_vidthumb(r.Context(), writ, origin_url, h, thumbWidth, quality, grayscale); err != nil {
-			log.Printf("Failed to thumbnail the video %s: %s", origin_url, err)
-			http.Redirect(w, r, origin_url, http.StatusFound)
+		if err := process_vidthumb(t.Ctx, writ, t.URL, h, t.ThumbWidth, t.Quality, t.Grayscale); err != nil {
+			log.Printf("Failed to thumbnail the video %s: %s", t.URL, err)
+			t.canclRedir()
 			return
 		}
 
 		pt := time.Since(processing_time)
 		tl := time.Since(fetch_time)
 
-		log.Printf("Thumbnailing Took %.1fs | Fetch: %.1fs | Processing: %.1fs | URL: %s", tl.Seconds(), ft.Seconds(), pt.Seconds(), origin_url)
+		log.Printf("Thumbnailing Took %.1fs | Fetch: %.1fs | Processing: %.1fs | URL: %s", tl.Seconds(), ft.Seconds(), pt.Seconds(), t.URL)
 
 		return
 	}
@@ -207,21 +270,21 @@ func request_handler(
 	body := io.LimitReader(resp.Body, resp.ContentLength)
 
 	if isAnimated {
-		if err := process_anim(r.Context(), writ, body, animformat, thumbWidth, quality, grayscale); err != nil {
-			log.Printf("Failed to animate %s: %s", origin_url, err)
-			http.Redirect(w, r, origin_url, http.StatusFound)
+		if err := process_anim(t.Ctx, writ, body, animformat, t.ThumbWidth, t.Quality, t.Grayscale); err != nil {
+			log.Printf("Failed to animate %s: %s", t.URL, err)
+			t.canclRedir()
 			return
 		}
-	} else if thumb {
-		if err := process_thumb(r.Context(), writ, fakeReadCloser{body}, thumbWidth, quality, grayscale); err != nil {
-			log.Printf("Failed to process %s: %s", origin_url, err)
-			http.Redirect(w, r, origin_url, http.StatusFound)
+	} else if t.Thumb {
+		if err := process_thumb(t.Ctx, writ, fakeReadCloser{body}, t.ThumbWidth, t.Quality, t.Grayscale); err != nil {
+			log.Printf("Failed to process %s: %s", t.URL, err)
+			t.canclRedir()
 			return
 		}
 	} else {
-		if err := process_image(r.Context(), writ, fakeReadCloser{body}, potentiallyCamera, quality, grayscale); err != nil {
-			log.Printf("Failed to process %s: %s", origin_url, err)
-			http.Redirect(w, r, origin_url, http.StatusFound)
+		if err := process_image(t.Ctx, writ, fakeReadCloser{body}, potentiallyCamera, t.Quality, t.Grayscale); err != nil {
+			log.Printf("Failed to process %s: %s", t.URL, err)
+			t.canclRedir()
 			return
 		}
 	}
@@ -229,5 +292,5 @@ func request_handler(
 	pt := time.Since(processing_time)
 	tl := time.Since(fetch_time)
 
-	log.Printf("Took %.1fs | Fetch: %.1fs | Processing: %.1fs | URL: %s", tl.Seconds(), ft.Seconds(), pt.Seconds(), origin_url)
+	log.Printf("Took %.1fs | Fetch: %.1fs | Processing: %.1fs | URL: %s", tl.Seconds(), ft.Seconds(), pt.Seconds(), t.URL)
 }
