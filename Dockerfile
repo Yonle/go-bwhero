@@ -1,6 +1,6 @@
 # -- build
 
-FROM docker.io/alpine:20260127 AS builder
+FROM docker.io/alpine:20260805 AS builder
 
 RUN apk add --no-cache go vips-dev vips-magick imagemagick pkgconf
 
@@ -11,7 +11,7 @@ RUN go build -v -trimpath -ldflags="-s -w -buildid=" -buildvcs=false -o /out/exe
 
 # -- after build
 
-FROM docker.io/alpine:20260127
+FROM docker.io/alpine:20260805
 
 LABEL org.opencontainers.image.source="https://github.com/Yonle/go-bwhero" \
       org.opencontainers.image.description="an image to run go-bwhero backend, an image compressor backend to be used with bandwidth hero addon." \
