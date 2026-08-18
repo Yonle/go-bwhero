@@ -1,5 +1,3 @@
-github.com/cshum/vipsgen v1.3.1 h1:deDY4MCgb0YNlQLBS1LSNknU02AUEex6p3L5/chZGls=
-github.com/cshum/vipsgen v1.3.1/go.mod h1:AmCpW+vKfu16ZFPN/PBgtLsAl3kt7c0y2uA4bD5Lzk8=
 github.com/cshum/vipsgen v1.3.10 h1:HJpdHXiAhkmF+Q3/tshbW7RlU1yKZgrqLkdAxkwPOe0=
 github.com/cshum/vipsgen v1.3.10/go.mod h1:AmCpW+vKfu16ZFPN/PBgtLsAl3kt7c0y2uA4bD5Lzk8=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=

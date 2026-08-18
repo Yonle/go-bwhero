@@ -183,11 +183,11 @@ func (t *Task) Process() {
 
 	limit := imagesizelimit
 
-	if isAnimated && animationsizelimit != -1 {
+	if isAnimated && animationsizelimit > 0 {
 		limit = animationsizelimit
 	}
 
-	if isVideo && videosizelimit != -1 {
+	if isVideo && videosizelimit > 0 {
 		limit = videosizelimit
 	}
 
@@ -217,7 +217,7 @@ func (t *Task) Process() {
 		if resp.StatusCode >= 400 {
 			log.Printf("Got status code %d on %s", resp.StatusCode, t.URL)
 		} else {
-			log.Printf("is an image: %v; is big: %v; url: %s", isImage, isBig, t.URL)
+			log.Printf("is an image: %v; is an video: %v; is big: %v; url: %s", isImage, isVideo, isBig, t.URL)
 		}
 		resp.Body.Close()
 		t.canclRedir()
