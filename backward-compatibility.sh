@@ -9,5 +9,6 @@ args=()
 [[ -n "${ANIMATIONSIZELIMIT:-}" ]] && args+=("-animSizeLimit" "$ANIMATIONSIZELIMIT")
 [[ -n "${VIDEOSIZELIMIT:-}" ]] && args+=("-videoSizeLimit" "$VIDEOSIZELIMIT")
 [[ -n "${USER_AGENT:-}" ]] && args+=("-userAgent" "$USER_AGENT")
+[[ -n "${WORKERS:-}" ]] && args+=("-workers" "$WORKERS") 
 
 exec ${GO_BWHERO_PATH:-`command -v go-bwhero`} "${args[@]}" "$@"
