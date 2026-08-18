@@ -17,7 +17,7 @@ LABEL org.opencontainers.image.source="https://github.com/Yonle/go-bwhero" \
       org.opencontainers.image.description="an image to run go-bwhero backend, an image compressor backend to be used with bandwidth hero addon." \
       org.opencontainers.image.licenses="BSD-3-Clause"
 
-RUN apk add --no-cache ffmpeg vips vips-magick imagemagick
+RUN apk add --no-cache ffmpeg vips vips-magick imagemagick bash
 COPY --from=builder /out/exec.bin /bin/go-bwhero
 COPY backward-compatibility.sh /bin/backward-compatibility.sh
 
