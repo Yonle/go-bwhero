@@ -86,7 +86,7 @@ func request_handler(
 		return
 	}
 
-	if r.Header.Get("User-Agent") == "go-bwhero" || r.Header.Get("Via") == "2.0 go-bwhero" {
+	if r.Header.Get("User-Agent") == ua {
 		http.Redirect(w, r, origin_url, http.StatusFound)
 		return
 	}
