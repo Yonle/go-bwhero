@@ -86,11 +86,6 @@ func request_handler(
 		return
 	}
 
-	if r.Header.Get("User-Agent") == ua {
-		http.Redirect(w, r, origin_url, http.StatusFound)
-		return
-	}
-
 	// user opens in new tab
 	if strings.HasPrefix(r.Header.Get("Accept"), "text/html") && !query.Has(("nr")) {
 		http.Redirect(w, r, origin_url, http.StatusFound)
