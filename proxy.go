@@ -2,14 +2,22 @@ package main
 
 import (
 	"context"
+	"net"
 	"net/http"
 	"time"
 )
 
+var timeout = 10 * time.Second
+
 var hc = http.Client{
-	Timeout: 10 * time.Second,
 	Transport: &http.Transport{
 		DisableCompression: true,
+		DialContext: (&net.Dialer{
+			Timeout: timeout,
+		}).DialContext,
+
+		TLSHandshakeTimeout:   timeout,
+		ResponseHeaderTimeout: timeout,
 	},
 }
 
@@ -30,7 +38,6 @@ func proxy(
 
 	req.Header.Set("Accept", "image/*")
 	req.Header.Set("User-Agent", ua)
-	//req.Header.Set("Via", "2.0 go-bwhero")
 
 	// if it has a referrer, set it
 	if ref := r.Referer(); len(ref) > 0 {
